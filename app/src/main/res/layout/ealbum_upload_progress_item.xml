@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+    <RelativeLayout
+
+        android:layout_width="match_parent"
+        android:layout_height="85dp"
+        android:background="@drawable/list_item_selector"
+        android:paddingBottom="5dp"
+        android:paddingLeft="14dp"
+        android:paddingRight="14dp"
+        android:paddingTop="5dp">
+
+        <ImageView
+            android:id="@+id/iv_image"
+            android:layout_width="75dp"
+            android:layout_height="75dp"
+            android:layout_marginRight="15dp"
+            android:scaleType="centerCrop"
+            android:src="@mipmap/ic_launcher"/>
+
+        <TextView
+            android:id="@+id/tv_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="15dp"
+            android:layout_toRightOf="@id/iv_image"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:text="上传到《cs》"
+            android:textColor="#333333"
+            android:textSize="15sp"/>
+
+        <TextView
+            android:id="@+id/tv_desc"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/tv_title"
+            android:layout_marginRight="14dp"
+            android:layout_marginTop="15dp"
+            android:layout_toRightOf="@id/iv_image"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:text="排队中..."
+            android:textColor="#666666"
+            android:textSize="12sp"
+            android:visibility="gone"/>
+
+        <LinearLayout
+            android:id="@+id/llt_progress"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/tv_title"
+            android:layout_marginRight="14dp"
+            android:layout_marginTop="15dp"
+            android:layout_toRightOf="@id/iv_image"
+            android:orientation="vertical">
+            <ProgressBar
+                android:id="@+id/pb_progressbar"
+                style="@style/StyleProgressBarMini"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/photo_shape_progressbar_bg"
+                android:clickable="false"
+                android:max="1000"
+                android:progress="10"/>
+            <TextView
+                android:id="@+id/tv_progress_desc"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerVertical="true"
+                android:layout_marginTop="4dp"
+                android:layout_toRightOf="@id/iv_image"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:text="50%"
+                android:textColor="@color/tab_text_hover"
+                android:textSize="10sp"
+                tools:text="504kb/504kb"/>
+        </LinearLayout>
+
+
+    </RelativeLayout>
+    <View android:layout_width="match_parent"
+          android:layout_height="1dp"
+          android:layout_alignParentBottom="true"
+          android:background="@color/pressed_color"></View>
+</LinearLayout>
