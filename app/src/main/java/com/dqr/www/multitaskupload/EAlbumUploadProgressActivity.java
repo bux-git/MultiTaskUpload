@@ -40,9 +40,8 @@ public class EAlbumUploadProgressActivity extends AppCompatActivity {
     private List<ProgressBean> mList;
 
 
-    public static void start(Context context,ArrayList<ProgressBean> list){
+    public static void start(Context context){
         Intent intent=new Intent(context,EAlbumUploadProgressActivity.class);
-        intent.putExtra("list", list);
         context.startActivity(intent);
     }
 
@@ -51,7 +50,7 @@ public class EAlbumUploadProgressActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.ealbum_upload_progress_list_activity);
 
-        mList = (List<ProgressBean>) getIntent().getSerializableExtra("list");
+        mList =ProgressManager.getInstance().getList();
         if(mList==null) mList = new ArrayList<>();
         mAdapter = new EAlbumProgressAdapter(mList);
 
@@ -76,22 +75,6 @@ public class EAlbumUploadProgressActivity extends AppCompatActivity {
 
     }
 
-
-
-    /**
-     * 检测数据变化
-     */
-    public void checkDataUpdate() {
-        for (int i = 0; i < mList.size(); i++) {
-            ProgressBean p = mList.get(i);
-            if (p.isSuccess()) {
-                mList.remove(i);
-                continue;
-            }
-        }
-    }
-
-
     @Override
     public void onResume() {
         startRefresh();
@@ -104,14 +87,17 @@ public class EAlbumUploadProgressActivity extends AppCompatActivity {
         super.onPause();
     }
 
+    @Override
+    protected void onStop() {
+        super.onStop();
+        ProgressManager.getInstance().setList(null);
+    }
 
     // 定时刷新上传任务显示数据
     private class ChangeListViewTask extends TimerTask {
         @Override
         public void run() {
             if (isRefresh) {
-                isRefresh=false;
-                checkDataUpdate();
                 mHandler.obtainMessage(NOTIFYDATA_CHANGED).sendToTarget();
 
             }
@@ -129,7 +115,6 @@ public class EAlbumUploadProgressActivity extends AppCompatActivity {
                         finish();
                     }
                     mAdapter.notifyDataSetChanged();
-                    isRefresh=true;
                     break;
                 default:
                     break;

@@ -9,6 +9,8 @@ import com.dqr.www.multitaskupload.bean.ProgressBean;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class MainActivity extends AppCompatActivity {
     private static final int COUNT = 1000;
@@ -28,7 +30,8 @@ public class MainActivity extends AppCompatActivity {
         mTvSee.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                EAlbumUploadProgressActivity.start(MainActivity.this, (ArrayList<ProgressBean>) mList);
+                ProgressManager.getInstance().setList(mList);
+                EAlbumUploadProgressActivity.start(MainActivity.this);
                 updateData();
             }
         });
@@ -47,24 +50,26 @@ public class MainActivity extends AppCompatActivity {
             p.setImgPath("http://test.dqr2015.cn:8888/uploadFiles/7852/small_94d70ea99e564649808a479f96dec671.jpg");
             mList.add(p);
         }
+
     }
 
     public void updateData() {
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                for (int j = 0; j < COUNT; j++) {
-                    for (int i = 0; i < mList.size(); i++) {
-                        ProgressBean p = mList.get(i);
-                        //测试数据
-                        p.setUploadedSize(p.getUploadedSize() + 100 * DW);
-                        if (p.getUploadedSize() > p.getTotalSize()) {
-                            p.setSuccess(true);
-                        }
-                    }
-                }
-            }
-        });
+
+       new Timer().schedule(new TimerTask() {
+           @Override
+           public void run() {
+               for (int i = 0; i < mList.size(); i++) {
+                   ProgressBean p = mList.get(i);
+                   //测试数据
+                   p.setUploadedSize(p.getUploadedSize() + 100 * DW);
+                   if (p.getUploadedSize() > p.getTotalSize()) {
+                       mList.remove(i);
+                   }
+               }
+           }
+       },100,1000);
 
     }
+
+
 }

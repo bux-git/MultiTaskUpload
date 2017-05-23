@@ -1,5 +1,9 @@
 package com.dqr.www.multitaskupload;
 
+import com.dqr.www.multitaskupload.bean.ProgressBean;
+
+import java.util.List;
+
 /**
  * Description：进度数据管理单例
  * Author：LiuYM
@@ -8,10 +12,33 @@ package com.dqr.www.multitaskupload;
 
 public class ProgressManager {
 
-  private  ProgressManager mProgressManager;
+    private static ProgressManager mProgressManager;
+    private List<ProgressBean> mList;
 
     private ProgressManager() {
+
     }
 
-    //public ProgressManager
+    public static ProgressManager getInstance() {
+        if (mProgressManager == null) {
+            mProgressManager = new ProgressManager();
+        }
+        return mProgressManager;
+    }
+
+    public static ProgressManager getmProgressManager() {
+        return mProgressManager;
+    }
+
+    public static void setmProgressManager(ProgressManager mProgressManager) {
+        ProgressManager.mProgressManager = mProgressManager;
+    }
+
+    public List<ProgressBean> getList() {
+        return mList;
+    }
+
+    public void setList(List<ProgressBean> list) {
+        mList = list;
+    }
 }
