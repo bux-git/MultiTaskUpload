@@ -3,38 +3,39 @@ package com.dqr.www.multitaskupload;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
-import android.widget.TextView;
+import android.widget.Button;
 
 import com.dqr.www.multitaskupload.bean.ProgressBean;
+import com.dqr.www.multitaskupload.database.EAlbumDBHelper;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements View.OnClickListener {
     private static final int COUNT = 10000;
     private static final int DW = 1024;
 
-    private TextView mTvSee;
-
+    private Button mBtnSee;
+    private Button mBtnCreate;
     private List<ProgressBean> mList;
 
+
+    private EAlbumDBHelper mAlbumDBHelper;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         getData();
 
-        mTvSee = (TextView) findViewById(R.id.tv_see);
-        mTvSee.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                ProgressManager.getInstance().setList(mList);
-                EAlbumUploadProgressActivity.start(MainActivity.this);
-                updateData();
-            }
-        });
+        mBtnSee = (Button) findViewById(R.id.btn_see);
+        mBtnCreate = (Button) findViewById(R.id.btn_create);
+        mBtnSee.setOnClickListener(this);
+        mBtnCreate.setOnClickListener(this);
+
+        mAlbumDBHelper = new EAlbumDBHelper(this,"EAlbumDB.db",null,1);
+
     }
 
     public void getData() {
@@ -72,4 +73,19 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
+
+
+    @Override
+    public void onClick(View v) {
+        switch (v.getId()){
+            case R.id.btn_see:
+                ProgressManager.getInstance().setList(mList);
+                EAlbumUploadProgressActivity.start(MainActivity.this);
+                updateData();
+                break;
+            case R.id.btn_create:
+                mAlbumDBHelper.getWritableDatabase();
+                break;
+        }
+    }
 }
