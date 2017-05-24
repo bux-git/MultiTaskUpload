@@ -24,6 +24,7 @@
             </intent-filter>
         </activity>
         <activity android:name=".EAlbumUploadProgressActivity"></activity>
+        <service android:name=".service.EAlbumUploadService"></service>
     </application>
 
 </manifest>

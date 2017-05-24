@@ -1,12 +1,14 @@
 package com.dqr.www.multitaskupload.bean;
 
+import java.io.Serializable;
+
 /**
  * Description：相册上传参数信息类
  * Author：LiuYM
  * Date： 2017-05-24 14:00
  */
 
-public class UploadTaskBean extends ProgressBean {
+public class UploadTaskBean extends ProgressBean implements Serializable {
 
     private int id;//表中自增ID
     private long fileSize;//文件大小

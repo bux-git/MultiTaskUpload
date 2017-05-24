@@ -19,6 +19,14 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="ADD"/>
+
+    <Button
+        android:id="@+id/btn_list"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:onClick="onClick"
+        android:text="ADD list"/>
+
     <Button
         android:id="@+id/btn_delete"
         android:layout_width="wrap_content"

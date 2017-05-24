@@ -50,9 +50,9 @@ public class EAlbumDB {
      *
      * @param up
      */
-    public void saveUploadTask(UploadTaskBean up) {
+    public long saveUploadTask(UploadTaskBean up) {
         if (up != null) {
-            if(isHasSameTaskByMD5(up.getMd5()));
+            if (isHasSameTaskByMD5(up.getMd5())) ;
             ContentValues values = new ContentValues();
             values.put("fileSize", up.getFileSize());
             values.put("startPos", up.getStartPos());
@@ -65,9 +65,11 @@ public class EAlbumDB {
             values.put("type", up.getType());
             values.put("albumId", up.getAlbumId());
             values.put("albumName", up.getAlbumName());
-            db.insert(UPLOAD_TASK_TABLE, null, values);
-            Log.d(TAG, "saveUploadTask:success "+up.getFilePath());
+            long id = db.insert(UPLOAD_TASK_TABLE, null, values);
+            Log.d(TAG, "saveUploadTask:success id:" + id);
+            return id;
         }
+        return -1;
     }
 
     /**
@@ -109,11 +111,12 @@ public class EAlbumDB {
 
     /**
      * 是否已经存在相同任务 根据图片md5判断
+     *
      * @param md5
      * @return
      */
     public boolean isHasSameTaskByMD5(String md5) {
-        Cursor cursor = db.query(UPLOAD_TASK_TABLE, null, "md5=?", new String[]{md5}, null, null," id asc");
+        Cursor cursor = db.query(UPLOAD_TASK_TABLE, null, "md5=?", new String[]{md5}, null, null, " id asc");
         return cursor.moveToFirst();
 
     }

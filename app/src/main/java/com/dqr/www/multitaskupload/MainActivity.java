@@ -9,6 +9,7 @@ import android.widget.Button;
 import com.dqr.www.multitaskupload.bean.ProgressBean;
 import com.dqr.www.multitaskupload.bean.UploadTaskBean;
 import com.dqr.www.multitaskupload.database.EAlbumDB;
+import com.dqr.www.multitaskupload.service.EAlbumUploadService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -89,14 +90,25 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 break;
             case R.id.btn_add:
                 UploadTaskBean taskBean = new UploadTaskBean(11l,0l,"","",11l,"","",1,"1");
-                mEAlbumDB.saveUploadTask(taskBean);
+                EAlbumUploadService.startAddUploadTask(this,taskBean);
+                break;
+            case R.id.btn_list:
+                List<UploadTaskBean> taskBeens = new ArrayList<>();
+                for(int i=0;i<5;i++){
+                    UploadTaskBean taskBean1 = new UploadTaskBean(11l,0l,"","",11l,"","",1,"1");
+                    taskBeens.add(taskBean1);
+                }
+                EAlbumUploadService.startAddUploadTask(this,taskBeens);
                 break;
             case R.id.btn_delete:
-                //mAlbumDBHelper.getWritableDatabase();
+               mEAlbumDB.deleteUploadTaskById(3);
                 break;
             case R.id.btn_query:
                 List<UploadTaskBean> list = mEAlbumDB.getUploadTaskBean();
-                Log.d(TAG, "onClick: "+list.size());
+                for(int i=0;i<list.size();i++){
+                    Log.d(TAG, "onClick:Id "+list.get(i).getId());
+                }
+
                 break;
         }
     }
