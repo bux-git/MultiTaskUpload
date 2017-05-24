@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.dqr.www.multitaskupload.MainActivity"
-android:orientation="vertical">
+    android:orientation="vertical"
+    tools:context="com.dqr.www.multitaskupload.MainActivity">
 
     <Button
         android:id="@+id/btn_see"
@@ -14,11 +14,22 @@ android:orientation="vertical">
         android:layout_height="wrap_content"
         android:text="See Progress"/>
 
-
     <Button
-        android:id="@+id/btn_create"
+        android:id="@+id/btn_add"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Create DataBase"/>
+        android:text="ADD"/>
+    <Button
+        android:id="@+id/btn_delete"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="DELETE"/>
+
+    <Button
+        android:id="@+id/btn_query"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="QUERY"/>
+
 
 </LinearLayout>

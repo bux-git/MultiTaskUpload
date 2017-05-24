@@ -91,7 +91,6 @@ public class EAlbumUploadProgressActivity extends AppCompatActivity {
     @Override
     protected void onStop() {
         super.onStop();
-        ProgressManager.clearManagerData();
     }
 
     // 定时刷新上传任务显示数据

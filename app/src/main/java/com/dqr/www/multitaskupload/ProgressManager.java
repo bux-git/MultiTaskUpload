@@ -12,27 +12,22 @@ import java.util.List;
 
 public class ProgressManager {
 
-    private static ProgressManager mProgressManager;
+    private static ProgressManager sProgressManager;
     private List<ProgressBean> mList;
 
     private ProgressManager() {
 
     }
 
-    public static ProgressManager getInstance() {
-        if (mProgressManager == null) {
-            mProgressManager = new ProgressManager();
+    public synchronized static ProgressManager getInstance() {
+        if (sProgressManager == null) {
+            sProgressManager = new ProgressManager();
         }
-        return mProgressManager;
+        return sProgressManager;
     }
 
-    public static ProgressManager getmProgressManager() {
-        return mProgressManager;
-    }
 
-    public static void setmProgressManager(ProgressManager mProgressManager) {
-        ProgressManager.mProgressManager = mProgressManager;
-    }
+
 
     public List<ProgressBean> getList() {
         return mList;
@@ -43,6 +38,6 @@ public class ProgressManager {
     }
 
     public static void clearManagerData(){
-        mProgressManager=null;
+        sProgressManager=null;
     }
 }

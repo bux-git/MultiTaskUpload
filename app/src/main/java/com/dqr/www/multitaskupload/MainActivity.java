@@ -2,11 +2,13 @@ package com.dqr.www.multitaskupload;
 
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 
 import com.dqr.www.multitaskupload.bean.ProgressBean;
-import com.dqr.www.multitaskupload.database.EAlbumDBHelper;
+import com.dqr.www.multitaskupload.bean.UploadTaskBean;
+import com.dqr.www.multitaskupload.database.EAlbumDB;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,28 +16,30 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
+    private static final String TAG = "MainActivity";
     private static final int COUNT = 10000;
     private static final int DW = 1024;
-
-    private Button mBtnSee;
-    private Button mBtnCreate;
     private List<ProgressBean> mList;
 
+    private EAlbumDB mEAlbumDB;
 
-    private EAlbumDBHelper mAlbumDBHelper;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         getData();
 
-        mBtnSee = (Button) findViewById(R.id.btn_see);
-        mBtnCreate = (Button) findViewById(R.id.btn_create);
-        mBtnSee.setOnClickListener(this);
-        mBtnCreate.setOnClickListener(this);
+        Button btnSee = (Button) findViewById(R.id.btn_see);
+        Button add = (Button) findViewById(R.id.btn_add);
+        Button delete = (Button) findViewById(R.id.btn_delete);
+        Button query = (Button) findViewById(R.id.btn_query);
 
-        mAlbumDBHelper = new EAlbumDBHelper(this,"EAlbumDB.db",null,1);
+        btnSee.setOnClickListener(this);
+        add.setOnClickListener(this);
+        delete.setOnClickListener(this);
+        query.setOnClickListener(this);
 
+        mEAlbumDB = EAlbumDB.getInstance(this);
     }
 
     public void getData() {
@@ -83,8 +87,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 EAlbumUploadProgressActivity.start(MainActivity.this);
                 updateData();
                 break;
-            case R.id.btn_create:
-                mAlbumDBHelper.getWritableDatabase();
+            case R.id.btn_add:
+                UploadTaskBean taskBean = new UploadTaskBean(11l,0l,"","",11l,"","",1,"1");
+                mEAlbumDB.saveUploadTask(taskBean);
+                break;
+            case R.id.btn_delete:
+                //mAlbumDBHelper.getWritableDatabase();
+                break;
+            case R.id.btn_query:
+                List<UploadTaskBean> list = mEAlbumDB.getUploadTaskBean();
+                Log.d(TAG, "onClick: "+list.size());
                 break;
         }
     }
