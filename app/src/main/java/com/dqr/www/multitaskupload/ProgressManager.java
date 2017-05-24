@@ -41,4 +41,8 @@ public class ProgressManager {
     public void setList(List<ProgressBean> list) {
         mList = list;
     }
+
+    public static void clearManagerData(){
+        mProgressManager=null;
+    }
 }

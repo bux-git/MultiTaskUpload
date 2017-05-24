@@ -21,7 +21,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 /**
- * Description：
+ * Description：上传详情显示页面
  * Author：LiuYM
  * Date： 2017-05-23 15:20
  */
@@ -51,6 +51,7 @@ public class EAlbumUploadProgressActivity extends AppCompatActivity {
         setContentView(R.layout.ealbum_upload_progress_list_activity);
 
         mList =ProgressManager.getInstance().getList();
+
         if(mList==null) mList = new ArrayList<>();
         mAdapter = new EAlbumProgressAdapter(mList);
 
@@ -90,7 +91,7 @@ public class EAlbumUploadProgressActivity extends AppCompatActivity {
     @Override
     protected void onStop() {
         super.onStop();
-        ProgressManager.getInstance().setList(null);
+        ProgressManager.clearManagerData();
     }
 
     // 定时刷新上传任务显示数据

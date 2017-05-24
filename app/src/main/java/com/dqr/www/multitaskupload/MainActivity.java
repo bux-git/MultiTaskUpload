@@ -13,7 +13,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 public class MainActivity extends AppCompatActivity {
-    private static final int COUNT = 1000;
+    private static final int COUNT = 10000;
     private static final int DW = 1024;
 
     private TextView mTvSee;
