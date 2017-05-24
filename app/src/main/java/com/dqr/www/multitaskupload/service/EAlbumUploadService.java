@@ -7,6 +7,7 @@ import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
+import com.dqr.www.multitaskupload.bean.ProgressBean;
 import com.dqr.www.multitaskupload.bean.UploadTaskBean;
 import com.dqr.www.multitaskupload.database.EAlbumDB;
 
@@ -21,7 +22,7 @@ import java.util.List;
 
 public class EAlbumUploadService extends Service {
     private static final String TAG = "EAlbumUploadService";
-    public static List<UploadTaskBean> sTaskBeen;//上传任务集合
+    public static List<ProgressBean> sTaskBeen;//上传任务集合
     private EAlbumDB mEAlbumDB;//数据库操作
     @Nullable
     @Override
@@ -43,7 +44,7 @@ public class EAlbumUploadService extends Service {
      * 添加单个任务到上传队列
      * @param uploadTaskBean
      */
-    public static void startAddUploadTask(Context context,UploadTaskBean uploadTaskBean){
+    public static void startAddUploadTask(Context context,ProgressBean uploadTaskBean){
         Intent intent = new Intent(context,EAlbumUploadService.class);
         intent.putExtra("addSingleTask", uploadTaskBean);
         context.startService(intent);
@@ -54,7 +55,7 @@ public class EAlbumUploadService extends Service {
      * @param context
      * @param uploadTaskBeans
      */
-    public static void startAddUploadTask(Context context,List<UploadTaskBean> uploadTaskBeans){
+    public static void startAddUploadTask(Context context,List<ProgressBean> uploadTaskBeans){
         Intent intent = new Intent(context,EAlbumUploadService.class);
         intent.putExtra("addTasks", (Serializable) uploadTaskBeans);
         context.startService(intent);
@@ -67,11 +68,11 @@ public class EAlbumUploadService extends Service {
             addUploadTaskToSqlAndQueue(taskBean);
 
         }else{
-            List<UploadTaskBean> uploadTaskBeans = (List<UploadTaskBean>) intent.getSerializableExtra("addTasks");
+            List<ProgressBean> uploadTaskBeans = (List<ProgressBean>) intent.getSerializableExtra("addTasks");
             if(uploadTaskBeans!=null) {
                 for (int i = 0; i < uploadTaskBeans.size(); i++) {
-                    UploadTaskBean bean = uploadTaskBeans.get(i);
-                    addUploadTaskToSqlAndQueue(bean);
+                    ProgressBean bean = uploadTaskBeans.get(i);
+                    addUploadTaskToSqlAndQueue((UploadTaskBean) bean);
                 }
             }
         }
@@ -84,7 +85,7 @@ public class EAlbumUploadService extends Service {
     private void initUploadTaskQueue(){
         Log.d(TAG, "initUploadTaskQueue: ");
         for(int i=0;i<sTaskBeen.size();i++){
-            addSingleUploadTask(sTaskBeen.get(i));
+            addSingleUploadTask((UploadTaskBean) sTaskBeen.get(i));
         }
     }
 
@@ -101,6 +102,7 @@ public class EAlbumUploadService extends Service {
      * @param uploadTaskBean
      */
     private void addUploadTaskToSqlAndQueue(UploadTaskBean uploadTaskBean){
+
         int id=(int) mEAlbumDB.saveUploadTask(uploadTaskBean);
         if(id>0){
             uploadTaskBean.setId(id);

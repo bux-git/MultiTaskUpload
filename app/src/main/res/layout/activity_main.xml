@@ -39,5 +39,12 @@
         android:layout_height="wrap_content"
         android:text="QUERY"/>
 
+    <Button
+        android:id="@+id/btn_select"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:onClick="onClick"
+        android:text="Select photos"/>
+
 
 </LinearLayout>

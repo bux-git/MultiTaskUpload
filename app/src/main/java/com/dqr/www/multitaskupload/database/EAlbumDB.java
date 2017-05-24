@@ -6,6 +6,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
 
+import com.dqr.www.multitaskupload.bean.ProgressBean;
 import com.dqr.www.multitaskupload.bean.UploadTaskBean;
 
 import java.util.ArrayList;
@@ -77,8 +78,8 @@ public class EAlbumDB {
      *
      * @return
      */
-    public List<UploadTaskBean> getUploadTaskBean() {
-        List<UploadTaskBean> list = new ArrayList<>();
+    public List<ProgressBean> getUploadTaskBean() {
+        List<ProgressBean> list = new ArrayList<>();
         Cursor cursor = db.query(UPLOAD_TASK_TABLE, null, null, null, null, null, " id asc");
         if (cursor.moveToFirst()) {
             do {
