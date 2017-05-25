@@ -14,18 +14,17 @@ public class UploadTaskBean extends ProgressBean implements Serializable {
     private long fileSize;//文件大小
     private long startPos;//分块开始位置，从0开始
     private String md5;//	文件MD5值，小写
-    private String filePath;//分块文件。文件路径
     private Long fileTime;//文件创建时间yyyy-MM-dd HH:mm:ss
     private String fileAddr;//文件创建地址。 武汉 长沙 中国
     private String fileAttribute;//	文件其他属性。JSON格式数据
-    private int source=1;//0未知来源1安卓2IOS3PC4其他
-    private int type=1;//文件类型1图片2视频3音频
+    private int source = 1;//0未知来源1安卓2IOS3PC4其他
+    private int type = 1;//文件类型1图片2视频3音频
     private int albumId;//	相册ID
-    private String albumName;//相册名称
 
 
     /**
      * 初始化全部参数
+     *
      * @param fileSize
      * @param startPos
      * @param md5
@@ -39,22 +38,24 @@ public class UploadTaskBean extends ProgressBean implements Serializable {
      * @param albumName
      */
     public UploadTaskBean(long fileSize, long startPos, String md5, String filePath, Long fileTime, String fileAddr, String fileAttribute, int source, int type, int albumId, String albumName) {
+        super(albumName, filePath);
+
         this.fileSize = fileSize;
         this.startPos = startPos;
         this.md5 = md5;
-        this.filePath = filePath;
         this.fileTime = fileTime;
         this.fileAddr = fileAddr;
         this.fileAttribute = fileAttribute;
         this.source = source;
         this.type = type;
         this.albumId = albumId;
-        this.albumName = albumName;
+        ;
     }
 
     /**
      * 默认souce 为1 android
      * 默认 文件类型 type 为1 图片
+     *
      * @param fileSize
      * @param startPos
      * @param md5
@@ -66,18 +67,19 @@ public class UploadTaskBean extends ProgressBean implements Serializable {
      * @param albumName
      */
     public UploadTaskBean(long fileSize, long startPos, String md5, String filePath, Long fileTime, String fileAddr, String fileAttribute, int albumId, String albumName) {
+        super(albumName, filePath);
         this.fileSize = fileSize;
         this.startPos = startPos;
         this.md5 = md5;
-        this.filePath = filePath;
+
         this.fileTime = fileTime;
         this.fileAddr = fileAddr;
         this.fileAttribute = fileAttribute;
         this.albumId = albumId;
-        this.albumName = albumName;
     }
 
     public UploadTaskBean() {
+        super("", "");
     }
 
     public int getId() {
@@ -112,13 +114,6 @@ public class UploadTaskBean extends ProgressBean implements Serializable {
         this.md5 = md5;
     }
 
-    public String getFilePath() {
-        return filePath;
-    }
-
-    public void setFilePath(String filePath) {
-        this.filePath = filePath;
-    }
 
     public Long getFileTime() {
         return fileTime;
@@ -166,13 +161,5 @@ public class UploadTaskBean extends ProgressBean implements Serializable {
 
     public void setAlbumId(int albumId) {
         this.albumId = albumId;
-    }
-
-    public String getAlbumName() {
-        return albumName;
-    }
-
-    public void setAlbumName(String albumName) {
-        this.albumName = albumName;
     }
 }

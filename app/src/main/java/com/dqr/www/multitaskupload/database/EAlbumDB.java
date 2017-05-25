@@ -86,6 +86,7 @@ public class EAlbumDB {
                 UploadTaskBean up = new UploadTaskBean();
                 up.setId(cursor.getInt(cursor.getColumnIndex("id")));
                 up.setStartPos(cursor.getInt(cursor.getColumnIndex("startPos")));
+                up.setFileSize(cursor.getInt(cursor.getColumnIndex("fileSize")));
                 up.setMd5(cursor.getString(cursor.getColumnIndex("md5")));
                 up.setFilePath(cursor.getString(cursor.getColumnIndex("filePath")));
                 up.setFileTime(cursor.getLong(cursor.getColumnIndex("fileTime")));
@@ -108,6 +109,14 @@ public class EAlbumDB {
      */
     public void deleteUploadTaskById(int id) {
         db.delete(UPLOAD_TASK_TABLE, "id=?", new String[]{id + ""});
+    }
+
+    /**
+     * 删除所有上传任务
+
+     */
+    public void deleteUploadTaskAll() {
+        db.delete(UPLOAD_TASK_TABLE,null, null);
     }
 
     /**

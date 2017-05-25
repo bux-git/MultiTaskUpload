@@ -53,24 +53,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.btn_see:
-                ProgressManager.getInstance().setList(mList);
+                ProgressManager.getInstance().setList(EAlbumUploadService.sTaskBeen);
                 EAlbumUploadProgressActivity.start(MainActivity.this);
-
                 break;
             case R.id.btn_add:
-                UploadTaskBean taskBean = new UploadTaskBean(11l, 0l, "", "", 11l, "", "", 1, "1");
-                EAlbumUploadService.startAddUploadTask(this, taskBean);
+
+                EAlbumUploadService.startUploadTask(this);
                 break;
             case R.id.btn_list:
-                List<ProgressBean> taskBeens = new ArrayList<>();
-                for (int i = 0; i < 5; i++) {
-                    UploadTaskBean taskBean1 = new UploadTaskBean(11l, 0l, "", "", 11l, "", "", 1, "1");
-                    taskBeens.add(taskBean1);
-                }
-                EAlbumUploadService.startAddUploadTask(this, taskBeens);
+
                 break;
             case R.id.btn_delete:
-                mEAlbumDB.deleteUploadTaskById(3);
+                mEAlbumDB.deleteUploadTaskAll();
                 break;
             case R.id.btn_query:
                 List<ProgressBean> list = mEAlbumDB.getUploadTaskBean();
@@ -101,6 +95,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         MediaStore.Images.Media.MIME_TYPE + "=? or " + MediaStore.Images.Media.MIME_TYPE + "=?", new String[]{"image/jpeg", "image/png"},
                         MediaStore.Images.Media.DATE_MODIFIED);
                 Log.e(TAG, mCursor.getCount() + "");
+
                 while (mCursor.moveToNext()) {
                     // 获取图片的路径
                     String path = mCursor.getString(mCursor.getColumnIndex(MediaStore.Images.Media.DATA));
@@ -119,7 +114,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 }
                 mCursor.close();
 
-                EAlbumUploadService.startAddUploadTask(MainActivity.this, mList);
+               EAlbumUploadService.startAddUploadTask(MainActivity.this, mList);
 
             }
         }).start();

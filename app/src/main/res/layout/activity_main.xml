@@ -10,41 +10,41 @@
 
     <Button
         android:id="@+id/btn_see"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="See Progress"/>
+        android:text="查看进度"/>
 
     <Button
         android:id="@+id/btn_add"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="ADD"/>
+        android:text="开启服务上传"/>
 
     <Button
         android:id="@+id/btn_list"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:onClick="onClick"
-        android:text="ADD list"/>
+        android:text="。。。"/>
 
     <Button
         android:id="@+id/btn_delete"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="DELETE"/>
+        android:text="删除数据库任务"/>
 
     <Button
         android:id="@+id/btn_query"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="QUERY"/>
+        android:text="查询数据库所有数据"/>
 
     <Button
         android:id="@+id/btn_select"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:onClick="onClick"
-        android:text="Select photos"/>
+        android:text="选择本地所有图片开始上《上传》"/>
 
 
 </LinearLayout>

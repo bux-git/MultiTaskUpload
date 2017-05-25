@@ -15,28 +15,52 @@ public class ProgressBean implements Serializable{
     /**
      * 显示名称 如 上传照片到《默默相册》
      */
-    private String title;
+    private String albumName;//相册名称
     /**
      * 排队说明 如  排队中...
      */
-    private String desc;
+    private String desc="排队中...";
     /**
      * 已经上传的大小单位byte
      */
-    private int uploadedSize;
+    private long uploadedSize;
     /**
      * 总大小byte
      */
-    private int totalSize;
+    private long totalSize;
 
     /**
      * 缩略图地址
      */
-    private String imgPath;
+    private String filePath;//图片文件路径
 
     private boolean isSuccess;//是否上传成功
     private boolean  isFail;//是否上传失败
 
+    public ProgressBean(String albumName, String filePath) {
+        this.albumName = albumName;
+        this.filePath = filePath;
+    }
+
+    public static int getMaxProgress() {
+        return MAX_PROGRESS;
+    }
+
+    public String getAlbumName() {
+        return albumName;
+    }
+
+    public void setAlbumName(String albumName) {
+        this.albumName = albumName;
+    }
+
+    public String getFilePath() {
+        return filePath;
+    }
+
+    public void setFilePath(String filePath) {
+        this.filePath = filePath;
+    }
 
     public boolean isSuccess() {
         return isSuccess;
@@ -54,21 +78,7 @@ public class ProgressBean implements Serializable{
         isFail = fail;
     }
 
-    public String getImgPath() {
-        return imgPath;
-    }
 
-    public void setImgPath(String imgPath) {
-        this.imgPath = imgPath;
-    }
-
-    public String getTitle() {
-        return title;
-    }
-
-    public void setTitle(String title) {
-        this.title = title;
-    }
 
     public String getDesc() {
         return desc;
@@ -78,19 +88,19 @@ public class ProgressBean implements Serializable{
         this.desc = desc;
     }
 
-    public int getUploadedSize() {
+    public long getUploadedSize() {
         return uploadedSize;
     }
 
-    public void setUploadedSize(int uploadedSize) {
+    public void setUploadedSize(long uploadedSize) {
         this.uploadedSize = uploadedSize;
     }
 
-    public int getTotalSize() {
+    public long getTotalSize() {
         return totalSize;
     }
 
-    public void setTotalSize(int totalSize) {
+    public void setTotalSize(long totalSize) {
         this.totalSize = totalSize;
     }
 
