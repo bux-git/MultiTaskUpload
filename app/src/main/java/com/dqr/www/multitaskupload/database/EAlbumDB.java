@@ -53,7 +53,9 @@ public class EAlbumDB {
      */
     public long saveUploadTask(UploadTaskBean up) {
         if (up != null) {
-            if (isHasSameTaskByMD5(up.getMd5())) ;
+            if (isHasSameTaskByMD5(up.getMd5())) {
+                return -1;
+            }
             ContentValues values = new ContentValues();
             values.put("fileSize", up.getFileSize());
             values.put("startPos", up.getStartPos());
@@ -80,7 +82,7 @@ public class EAlbumDB {
      */
     public List<ProgressBean> getUploadTaskBean() {
         List<ProgressBean> list = new ArrayList<>();
-        Cursor cursor = db.query(UPLOAD_TASK_TABLE, null, null, null, null, null, " id asc");
+        Cursor cursor = db.query(UPLOAD_TASK_TABLE, null, null, null, null, null, " id desc");
         if (cursor.moveToFirst()) {
             do {
                 UploadTaskBean up = new UploadTaskBean();
@@ -99,6 +101,7 @@ public class EAlbumDB {
                 list.add(up);
             } while (cursor.moveToNext());
         }
+        cursor.close();
         return list;
     }
 
@@ -113,10 +116,9 @@ public class EAlbumDB {
 
     /**
      * 删除所有上传任务
-
      */
     public void deleteUploadTaskAll() {
-        db.delete(UPLOAD_TASK_TABLE,null, null);
+        db.delete(UPLOAD_TASK_TABLE, null, null);
     }
 
     /**
@@ -127,7 +129,14 @@ public class EAlbumDB {
      */
     public boolean isHasSameTaskByMD5(String md5) {
         Cursor cursor = db.query(UPLOAD_TASK_TABLE, null, "md5=?", new String[]{md5}, null, null, " id asc");
-        return cursor.moveToFirst();
+
+        if (cursor.moveToFirst()) {
+            Log.d(TAG, "saveUploadTask: 已经存在相同任务" + cursor.getString(cursor.getColumnIndex("filePath")));
+            cursor.close();
+            return true;
+        }
+        cursor.close();
+        return false;
 
     }
 }

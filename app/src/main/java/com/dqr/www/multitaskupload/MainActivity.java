@@ -15,6 +15,8 @@ import com.dqr.www.multitaskupload.bean.UploadTaskBean;
 import com.dqr.www.multitaskupload.database.EAlbumDB;
 import com.dqr.www.multitaskupload.service.EAlbumUploadService;
 import com.dqr.www.multitaskupload.util.FileUtils;
+import com.dqr.www.multitaskupload.util.NetReceiver;
+import com.dqr.www.multitaskupload.util.NetUtils;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -27,11 +29,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private List<ProgressBean> mList;
 
     private EAlbumDB mEAlbumDB;
+    private NetReceiver mReceiver;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        //初始化网络
+        Constant.IS_CONNECTED = NetUtils.isNetworkConnected(this);
+        Constant.NET_STATE_TYPE=NetUtils.getConnectedType(this);
 
         mList = new ArrayList<>();
         Button btnSee = (Button) findViewById(R.id.btn_see);
@@ -47,6 +53,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mEAlbumDB = EAlbumDB.getInstance(this);
 
     }
+
+
 
 
     @Override
@@ -76,6 +84,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                             "   " +up.getFileTime()+
                             "   " +up.getFileSize());
                 }
+                Log.d(TAG, "onClick: "+list.size());
                 break;
             case R.id.btn_select:
                 getUploadTaskBean();
@@ -106,7 +115,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                             , path
                             , file.lastModified()
                             , "湖南 长沙"
-                            , ""
+                            , "{\"lng\":28,\"lat\":113}"
                             , 0
                             , "测试");
                     mList.add(taskBean);

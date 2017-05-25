@@ -2,6 +2,8 @@ package com.dqr.www.multitaskupload.bean;
 
 import java.io.Serializable;
 
+import okhttp3.Call;
+
 /**
  * Description：进度详情
  * Author：LiuYM
@@ -37,9 +39,21 @@ public class ProgressBean implements Serializable{
     private boolean isSuccess;//是否上传成功
     private boolean  isFail;//是否上传失败
 
+    private Call call;
+
+
     public ProgressBean(String albumName, String filePath) {
         this.albumName = albumName;
         this.filePath = filePath;
+    }
+
+
+    public Call getCall() {
+        return call;
+    }
+
+    public void setCall(Call call) {
+        this.call = call;
     }
 
     public static int getMaxProgress() {

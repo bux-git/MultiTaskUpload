@@ -39,24 +39,29 @@ public class EAlbumProgressAdapter extends RecyclerView.Adapter<RecyclerHolder> 
     public void onBindViewHolder(RecyclerHolder holder, int position) {
         ProgressBean pBean = mList.get(position);
         holder.setImageResource(R.id.iv_image, pBean.getFilePath(), R.mipmap.ic_launcher);
-        holder.setText(R.id.tv_title,"上传到《"+ pBean.getAlbumName()+"》");
+        holder.setText(R.id.tv_title, "上传到《" + pBean.getAlbumName() + "》");
 
         TextView tvDesc = holder.getView(R.id.tv_desc);
         LinearLayout lltProgress = holder.getView(R.id.llt_progress);
         ProgressBar progressBar = holder.getView(R.id.pb_progressbar);
         TextView tvProgress = holder.getView(R.id.tv_progress_desc);
 
-        if(pBean.isFail()){//上传失败
+        if (pBean.isFail()) {//上传失败
             tvDesc.setVisibility(View.VISIBLE);
             lltProgress.setVisibility(View.GONE);
-            tvDesc.setText("上传失败!");
-        }else if (pBean.getUploadedSize() > 0) {//正常上传中
+            tvDesc.setText("上传失败");
+        } else if (pBean.isSuccess()) {
+            tvDesc.setVisibility(View.VISIBLE);
+            lltProgress.setVisibility(View.GONE);
+            tvDesc.setText("上传成功");
+
+        } else if (pBean.getUploadedSize() > 0) {//正常上传中
             tvDesc.setVisibility(View.GONE);
             lltProgress.setVisibility(View.VISIBLE);
 
             progressBar.setProgress(pBean.getProgress());
             tvProgress.setText(ProgressBean.convertFileSize(pBean.getUploadedSize())
-                    +"/"
+                    + "/"
                     + ProgressBean.convertFileSize(pBean.getTotalSize()));
 
         } else {//等待中

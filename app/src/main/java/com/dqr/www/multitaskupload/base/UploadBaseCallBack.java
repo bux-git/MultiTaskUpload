@@ -54,7 +54,7 @@ public abstract class UploadBaseCallBack<T> implements Callback {
 
     @Override
     public void onFailure(Call call, IOException e) {
-        Log.d(TAG, "onFailure: " + e.getMessage());
+        Log.d(TAG, "onFailure: " + e.getMessage()+"     "+e.toString());
         onFail(e.getMessage());
         onAfter();
     }

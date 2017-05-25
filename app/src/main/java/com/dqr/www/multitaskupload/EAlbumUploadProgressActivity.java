@@ -132,7 +132,7 @@ public class EAlbumUploadProgressActivity extends AppCompatActivity {
         }
         if (task == null) {
             task = new ChangeListViewTask();
-            timer.schedule(task, 100, 1000);
+            timer.schedule(task, 500, 1000);
         }
     }
 

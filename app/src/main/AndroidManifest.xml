@@ -40,6 +40,11 @@
         </activity>
         <activity android:name=".EAlbumUploadProgressActivity"></activity>
         <service android:name=".service.EAlbumUploadService"></service>
+        <receiver android:name=".util.NetReceiver">
+            <intent-filter >
+                <action android:name="android.net.conn.CONNECTIVITY_CHANGE"></action>
+            </intent-filter>
+        </receiver>
     </application>
 
 </manifest>
