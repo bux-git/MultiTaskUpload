@@ -280,11 +280,11 @@ public class EAlbumUploadService extends Service {
             return;
         }
         //表示开始上传
-        up.setUploadedSize(1);
+        up.setUploadedSize(up.getStartPos());
         up.setTotalSize(up.getFileSize());
 
         final MultipartBody.Builder builder = getPartBodyBuilder(up, file);
-        builder.addFormDataPart("startPos","0");
+        builder.addFormDataPart("startPos", "0");
 
         final Request.Builder requestBuilder = new Request.Builder()
                 .url(url)
@@ -342,10 +342,11 @@ public class EAlbumUploadService extends Service {
      * @param up
      */
     private void uploadFile(final UploadTaskBean up, final File file) {
-        Log.d(TAG, "uploadFile: ");
+        Log.d(TAG, "开始执行上传网络操作: "+up.getStartPos());
         new Thread(new Runnable() {
             @Override
             public void run() {
+
                 RandomAccessFile randomAccessFile = null;
                 try {
                     int len = -1;//记录读取大小
@@ -355,7 +356,7 @@ public class EAlbumUploadService extends Service {
                     byte[] buffer = new byte[MAX_SIZE];
                     boolean isStopWhile = false;//是否停止while
                     //获取分块
-                    while ((len = randomAccessFile.read(buffer)) != -1 && (!isStopWhile)) {
+                    while ((len = randomAccessFile.read(buffer)) != -1 && (!isStopWhile) && !isStop) {
 
                         MultipartBody.Builder builder = getPartBodyBuilder(up, file);
                         RequestBody requestBody = RequestBody.create(MediaType.parse("multipart/form-data"), buffer, 0, len);
@@ -363,25 +364,34 @@ public class EAlbumUploadService extends Service {
                                 .addFormDataPart("startPos", String.valueOf(up.getStartPos()));
 
 
+                        ProgressRequestBody pBody = new ProgressRequestBody(builder.build(), new ProgressListener() {
+                            long lastCount=0;
+                            @Override
+                            public void progress(long bytesRead, long contentLength, boolean done) {
+                               // Log.d(TAG, "progress: getUploadedSize:"+up.getUploadedSize()+"  bytesRead:"+bytesRead+" lastCount:"+lastCount+"   sun:"+(up.getUploadedSize() + bytesRead-lastCount));
+                                //pb2. 当前已经上传值+此次上传的增量 即 bytesRead-lastCount  已经上传-上一次上传
+                                up.setUploadedSize(up.getUploadedSize() + bytesRead-lastCount);
+                                lastCount=bytesRead;
+                               // Log.d(TAG, "progress: bytesRead:" + bytesRead + "   contentLength:" + contentLength + "  fileSize:" + up.getFileSize() + " done:" + done);
+                            }
+                        });
+                        // pb 1.由于请求体大小要大于分片文件大小 所以在文件已上传进度 将差值减去
+                        up.setUploadedSize(up.getUploadedSize()-(pBody.contentLength()-len));
+
                         final Request request = new Request.Builder()
                                 .url(url)
-                                .post(new ProgressRequestBody(builder.build(), new ProgressListener() {
-                                    @Override
-                                    public void progress(long bytesRead, long contentLength, boolean done) {
-                                        up.setUploadedSize(up.getUploadedSize() + bytesRead);
-                                        Log.d(TAG, "progress: bytesRead:" + bytesRead + "   contentLength:" + contentLength + "  fileSize:" + up.getFileSize() + " done:" + done);
-                                    }
-                                })).build();
+                                .post(pBody).build();
 
 
                         Call call = mClient.newCall(request);
                         up.setCall(call);
                         Response response = call.execute();
                         String responseStr = response.body().source().readString(Charset.forName("UTF-8"));
-                        Log.d(TAG, "上传文件:path:"+up.getFilePath()+"  code:" + response.code() + "   response:" + responseStr);
+                        Log.d(TAG, "上传文件 startPos:" + up.getStartPos() + "  当前分块大小:" + len + "  path:" + up.getFilePath() + "  code:" + response.code() + "   response:" + responseStr);
 
                         if (response.code() == 200) {//成功
-                            BaseModel<ImageBean> baseModel = JSON.parseObject(responseStr,new TypeReference<BaseModel<ImageBean>>(){});
+                            BaseModel<ImageBean> baseModel = JSON.parseObject(responseStr, new TypeReference<BaseModel<ImageBean>>() {
+                            });
                             switch (baseModel.getCode()) {
                                 case "000004"://重新上传整个文件
                                     isStopWhile = true;
@@ -395,8 +405,10 @@ public class EAlbumUploadService extends Service {
                                     break;
                                 case "000000":
                                     if (baseModel.getResult() == null) {//分块上传成功
-                                        up.setStartPos(up.getStartPos() + len);
-                                        mEAlbumDB.updateTaskStartPosById(up.getId(), up.getStartPos() + len);
+                                        long addLength = up.getStartPos() + len;
+                                        up.setStartPos(addLength);
+                                        mEAlbumDB.updateTaskStartPosById(up.getId(), addLength);
+                                       // Log.d(TAG, "addLength: getStartPos: "+up.getStartPos()+"  len:"+len);
                                     } else {//文件上传成功
                                         isStopWhile = true;
                                         successCheckRemove(up, null);
@@ -407,6 +419,7 @@ public class EAlbumUploadService extends Service {
 
                         } else {//失败
                             failCheckRemove(up);
+                            break;
                         }
                     }
                 } catch (FileNotFoundException e) {
@@ -451,7 +464,7 @@ public class EAlbumUploadService extends Service {
      */
     private void successCheckRemove(UploadTaskBean up, JSONObject result) {
         //result !=null
-        Log.d(TAG, "onSuccess: " + result);
+        Log.d(TAG, "文件上传成功 移除上传队列 和总集合: " + result);
         //移除任务
         mEAlbumDB.deleteUploadTaskById(up.getId());
         sTaskBeen.remove(up);
@@ -463,7 +476,7 @@ public class EAlbumUploadService extends Service {
      * 停止服务
      */
     private void stopService() {
-        if (waitUploadQueue.size() == 0) {
+        if (waitUploadQueue.size() == 0&&uploadQueue.size()==0) {
             stopSelf();
             isStop = true;
         }

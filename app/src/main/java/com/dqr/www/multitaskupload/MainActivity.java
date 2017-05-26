@@ -49,8 +49,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
 
-
-
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
@@ -71,14 +69,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             case R.id.btn_query:
                 List<ProgressBean> list = mEAlbumDB.getUploadTaskBean();
                 for (int i = 0; i < list.size(); i++) {
-                    UploadTaskBean up=(UploadTaskBean) list.get(i);
-                    Log.d(TAG, "onClick:Id " +up.getId()+
-                            "   " +up.getFilePath()+
-                            "   " +up.getMd5()+
-                            "   " +up.getFileTime()+
-                            "   " +up.getFileSize());
+                    UploadTaskBean up = (UploadTaskBean) list.get(i);
+                    Log.d(TAG, "onClick:Id " + up.getId() +
+                            "   " + up.getFilePath() +
+                            "   " + up.getMd5() +
+                            "   " + up.getFileTime() +
+                            "       " + up.getFileSize() +
+                            "   getStartPos:" + up.getStartPos()
+                    );
                 }
-                Log.d(TAG, "onClick: "+list.size());
+                Log.d(TAG, "onClick: " + list.size());
                 break;
             case R.id.btn_select:
                 getUploadTaskBean();
