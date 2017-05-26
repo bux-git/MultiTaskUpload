@@ -16,17 +16,14 @@ import com.dqr.www.multitaskupload.database.EAlbumDB;
 import com.dqr.www.multitaskupload.service.EAlbumUploadService;
 import com.dqr.www.multitaskupload.util.FileUtils;
 import com.dqr.www.multitaskupload.util.NetReceiver;
-import com.dqr.www.multitaskupload.util.NetUtils;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
     private static final String TAG = "MainActivity";
     private static final int COUNT = 10000;
     private static final int DW = 1024;
-    private List<ProgressBean> mList;
 
     private EAlbumDB mEAlbumDB;
     private NetReceiver mReceiver;
@@ -35,11 +32,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        //初始化网络
-        Constant.IS_CONNECTED = NetUtils.isNetworkConnected(this);
-        Constant.NET_STATE_TYPE=NetUtils.getConnectedType(this);
 
-        mList = new ArrayList<>();
+
         Button btnSee = (Button) findViewById(R.id.btn_see);
         Button add = (Button) findViewById(R.id.btn_add);
         Button delete = (Button) findViewById(R.id.btn_delete);
@@ -118,12 +112,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                             , "{\"lng\":28,\"lat\":113}"
                             , 0
                             , "测试");
-                    mList.add(taskBean);
-
+                    EAlbumUploadService.startAddUploadTask(MainActivity.this, taskBean);
                 }
                 mCursor.close();
+                Log.d(TAG, "run: ");
 
-               EAlbumUploadService.startAddUploadTask(MainActivity.this, mList);
 
             }
         }).start();

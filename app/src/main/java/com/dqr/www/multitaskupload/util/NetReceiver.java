@@ -5,7 +5,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.ConnectivityManager;
 
-import com.dqr.www.multitaskupload.Constant;
 import com.dqr.www.multitaskupload.service.EAlbumUploadService;
 
 /**
@@ -25,8 +24,6 @@ public class NetReceiver extends BroadcastReceiver {
             System.out.println("移动网络状态：" + NetUtils.isMobileConnected(context));
             System.out.println("网络连接类型：" + NetUtils.getConnectedType(context));
 
-            Constant.NET_STATE_TYPE = NetUtils.getConnectedType(context);
-            Constant.IS_CONNECTED = isConnected;
 
             if (isConnected) {//有网络时 开启照片上传服务
                 EAlbumUploadService.startUploadTask(context);

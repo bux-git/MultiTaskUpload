@@ -7,21 +7,30 @@ import android.net.ConnectivityManager;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.TypeReference;
 import com.dqr.www.multitaskupload.Constant;
+import com.dqr.www.multitaskupload.base.BaseModel;
 import com.dqr.www.multitaskupload.base.ProgressListener;
 import com.dqr.www.multitaskupload.base.ProgressRequestBody;
 import com.dqr.www.multitaskupload.base.UploadBaseCallBack;
+import com.dqr.www.multitaskupload.bean.ImageBean;
 import com.dqr.www.multitaskupload.bean.ProgressBean;
 import com.dqr.www.multitaskupload.bean.UploadTaskBean;
 import com.dqr.www.multitaskupload.database.EAlbumDB;
 import com.dqr.www.multitaskupload.util.NetUtils;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.io.Serializable;
+import java.nio.charset.Charset;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -34,6 +43,7 @@ import okhttp3.MultipartBody;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
+import okhttp3.Response;
 
 /**
  * Description：照片上传服务
@@ -51,6 +61,7 @@ public class EAlbumUploadService extends Service {
     private EAlbumDB mEAlbumDB;//数据库操作
 
     private static final int MAX_UPLOAD_SIZE = 10;//同时最大上传队列
+    private static final int MAX_SIZE = 1024 * 1024;//分块大小默认1M
 
     public static List<ProgressBean> sTaskBeen = new ArrayList<>();//上传任务集合
     private List<ProgressBean> waitUploadQueue;//待上传集合
@@ -140,19 +151,20 @@ public class EAlbumUploadService extends Service {
         UploadTaskBean taskBean = (UploadTaskBean) intent.getSerializableExtra("addSingleTask");
         List<ProgressBean> uploadTaskBeans = (List<ProgressBean>) intent.getSerializableExtra("addTasks");
         if (taskBean != null) {
-
             addUploadTaskToSqlAndQueue(taskBean);
-
         } else if (uploadTaskBeans != null) {
+
             for (int i = 0; i < uploadTaskBeans.size(); i++) {
                 ProgressBean bean = uploadTaskBeans.get(i);
                 addUploadTaskToSqlAndQueue((UploadTaskBean) bean);
+                Log.d(TAG, "service run: " + i);
             }
-        }
 
+        }
         if (isHasFailData) {//将失败数据添加到队列末尾
             waitUploadQueue.addAll(failList);
         }
+
         return super.onStartCommand(intent, flags, startId);
     }
 
@@ -163,7 +175,6 @@ public class EAlbumUploadService extends Service {
             super.handleMessage(msg);
             //添加请求
             if (msg.what == MESSAGE_NOTIFY_ADD_UPLOAD) {
-
                 if (waitUploadQueue.size() > 0) {
                     if (uploadQueue.size() < MAX_UPLOAD_SIZE) {
                         Log.d(TAG, "handleMessage: waitUploadQueue:" + waitUploadQueue.size() + "   uploadQueue:" + uploadQueue.size());
@@ -194,8 +205,8 @@ public class EAlbumUploadService extends Service {
                         stopSelf();
                         return;
                     } else {//有网络判断网络类型
-                        Constant.NET_STATE_TYPE = NetUtils.getConnectedType(EAlbumUploadService.this);
-                        if (Constant.NET_STATE_TYPE == ConnectivityManager.TYPE_MOBILE) {//手机网络
+                        int netStateType = NetUtils.getConnectedType(EAlbumUploadService.this);
+                        if (netStateType == ConnectivityManager.TYPE_MOBILE) {//手机网络
                             if (!Constant.MOBILE_UPLOAD) {//3g/4g不上传
                                 //取消正在上传的任务
                                 for (int i = 0; i < uploadQueue.size(); i++) {
@@ -205,7 +216,7 @@ public class EAlbumUploadService extends Service {
                                 stopSelf();
                                 return;
                             }
-                        } else if (Constant.NET_STATE_TYPE == ConnectivityManager.TYPE_WIFI) {
+                        } else if (netStateType == ConnectivityManager.TYPE_WIFI) {
 
                         } else {//其他停止服务
                             stopSelf();
@@ -235,11 +246,9 @@ public class EAlbumUploadService extends Service {
     private void addUploadTaskToSqlAndQueue(UploadTaskBean uploadTaskBean) {
         int id = (int) mEAlbumDB.saveUploadTask(uploadTaskBean);
         if (id > 0) {//写入数据库成功后才进行其他操作
-
             uploadTaskBean.setId(id);
             sTaskBeen.add(uploadTaskBean);
             waitUploadQueue.add(uploadTaskBean);
-
             return;
         }
         Log.d(TAG, "addUploadTaskToSql: 添加数据库失败:" + uploadTaskBean.getFilePath());
@@ -274,21 +283,8 @@ public class EAlbumUploadService extends Service {
         up.setUploadedSize(1);
         up.setTotalSize(up.getFileSize());
 
-        final MultipartBody.Builder builder = new MultipartBody.Builder()
-                .setType(MultipartBody.FORM)
-                .addFormDataPart("size", String.valueOf(up.getFileSize()))
-                .addFormDataPart("startPos", String.valueOf(up.getStartPos()))
-                .addFormDataPart("name", file.getName())
-                .addFormDataPart("md5", up.getMd5())
-                .addFormDataPart("fileTime", new SimpleDateFormat("yyyy-MM-dd hh:mm:ss").format(new Date(up.getFileTime())))
-                .addFormDataPart("fileAddr", up.getFileAddr())
-                .addFormDataPart("fileAttribute", up.getFileAttribute())
-                .addFormDataPart("source", String.valueOf(up.getSource()))
-                .addFormDataPart("type", String.valueOf(up.getType()));
-        if (up.getAlbumId() > 0) {
-            builder.addFormDataPart("albumId", String.valueOf(up.getAlbumId()));
-        }
-
+        final MultipartBody.Builder builder = getPartBodyBuilder(up, file);
+        builder.addFormDataPart("startPos","0");
 
         final Request.Builder requestBuilder = new Request.Builder()
                 .url(url)
@@ -309,68 +305,144 @@ public class EAlbumUploadService extends Service {
                             //延迟发送方便进度察看中 有一段停留时间
                             return;
                         }
-                        Log.d(TAG, "onSuccess: ");
-                        uploadFile(up, builder, file);
+                        Log.d(TAG, "服务器不存在 onSuccess: ");
+                        uploadFile(up, file);
                     }
 
                     @Override
                     protected void onFail(String msg) {
-                        uploadFile(up, builder, file);
+                        uploadFile(up, file);
                     }
                 });
 
 
     }
 
+    @NonNull
+    private MultipartBody.Builder getPartBodyBuilder(UploadTaskBean up, File file) {
+        final MultipartBody.Builder builder = new MultipartBody.Builder()
+                .setType(MultipartBody.FORM)
+                .addFormDataPart("size", String.valueOf(up.getFileSize()))
+                .addFormDataPart("name", file.getName())
+                .addFormDataPart("md5", up.getMd5())
+                .addFormDataPart("fileTime", new SimpleDateFormat("yyyy-MM-dd hh:mm:ss").format(new Date(up.getFileTime())))
+                .addFormDataPart("fileAddr", up.getFileAddr())
+                .addFormDataPart("fileAttribute", up.getFileAttribute())
+                .addFormDataPart("source", String.valueOf(up.getSource()))
+                .addFormDataPart("type", String.valueOf(up.getType()));
+        if (up.getAlbumId() > 0) {
+            builder.addFormDataPart("albumId", String.valueOf(up.getAlbumId()));
+        }
+        return builder;
+    }
+
     /**
      * 上传文件
      *
      * @param up
-     * @param builder
      */
-    private void uploadFile(final UploadTaskBean up, final MultipartBody.Builder builder, final File file) {
+    private void uploadFile(final UploadTaskBean up, final File file) {
         Log.d(TAG, "uploadFile: ");
-       /* new Thread(new Runnable() {
+        new Thread(new Runnable() {
             @Override
-            public void run() {*/
-        RequestBody requestBody = RequestBody.create(MediaType.parse("multipart/form-data"), file);
-        builder.addFormDataPart("file", file.getName(), requestBody);
+            public void run() {
+                RandomAccessFile randomAccessFile = null;
+                try {
+                    int len = -1;//记录读取大小
 
-        Request request = new Request.Builder()
-                .url(url)
-                .post(new ProgressRequestBody(builder.build(), new ProgressListener() {
-                    @Override
-                    public void progress(long bytesRead, long contentLength, boolean done) {
-                        up.setUploadedSize(bytesRead);
-                        up.setTotalSize(contentLength);
-                        Log.d(TAG, "progress: bytesRead:" + bytesRead + "   contentLength:" + contentLength + "  fileSize:" + up.getFileSize() + " done:" + done);
+                    randomAccessFile = new RandomAccessFile(file, "r");
+                    randomAccessFile.seek(up.getStartPos());
+                    byte[] buffer = new byte[MAX_SIZE];
+                    boolean isStopWhile = false;//是否停止while
+                    //获取分块
+                    while ((len = randomAccessFile.read(buffer)) != -1 && (!isStopWhile)) {
+
+                        MultipartBody.Builder builder = getPartBodyBuilder(up, file);
+                        RequestBody requestBody = RequestBody.create(MediaType.parse("multipart/form-data"), buffer, 0, len);
+                        builder.addFormDataPart("file", file.getName(), requestBody)
+                                .addFormDataPart("startPos", String.valueOf(up.getStartPos()));
+
+
+                        final Request request = new Request.Builder()
+                                .url(url)
+                                .post(new ProgressRequestBody(builder.build(), new ProgressListener() {
+                                    @Override
+                                    public void progress(long bytesRead, long contentLength, boolean done) {
+                                        up.setUploadedSize(up.getUploadedSize() + bytesRead);
+                                        Log.d(TAG, "progress: bytesRead:" + bytesRead + "   contentLength:" + contentLength + "  fileSize:" + up.getFileSize() + " done:" + done);
+                                    }
+                                })).build();
+
+
+                        Call call = mClient.newCall(request);
+                        up.setCall(call);
+                        Response response = call.execute();
+                        String responseStr = response.body().source().readString(Charset.forName("UTF-8"));
+                        Log.d(TAG, "上传文件:path:"+up.getFilePath()+"  code:" + response.code() + "   response:" + responseStr);
+
+                        if (response.code() == 200) {//成功
+                            BaseModel<ImageBean> baseModel = JSON.parseObject(responseStr,new TypeReference<BaseModel<ImageBean>>(){});
+                            switch (baseModel.getCode()) {
+                                case "000004"://重新上传整个文件
+                                    isStopWhile = true;
+                                    //设置其实位置为0
+                                    mEAlbumDB.updateTaskStartPosById(up.getId(), 0);
+                                    failCheckRemove(up);
+                                    break;
+                                case "000001"://重新上传分片
+                                    isStopWhile = true;
+                                    failCheckRemove(up);
+                                    break;
+                                case "000000":
+                                    if (baseModel.getResult() == null) {//分块上传成功
+                                        up.setStartPos(up.getStartPos() + len);
+                                        mEAlbumDB.updateTaskStartPosById(up.getId(), up.getStartPos() + len);
+                                    } else {//文件上传成功
+                                        isStopWhile = true;
+                                        successCheckRemove(up, null);
+                                    }
+                                    break;
+
+                            }
+
+                        } else {//失败
+                            failCheckRemove(up);
+                        }
                     }
-                })).build();
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } finally {
+                    if (randomAccessFile != null) {
+                        try {
+                            randomAccessFile.close();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
 
-        Call call = mClient.newCall(request);
-        up.setCall(call);
-        call.enqueue(new UploadBaseCallBack<JSONObject>() {
-            @Override
-            protected void onSuccess(JSONObject result) {
-                successCheckRemove(up, result);
             }
-
-            @Override
-            protected void onFail(String msg) {
-                Log.d(TAG, "onFail: " + msg);
-                up.setFail(true);
-                //移除上传队列任务 不移除 数据库 和总集合 下次继续上传
-                uploadQueue.remove(up);
-                //失败移除到末尾
-                sTaskBeen.remove(up);
-                sTaskBeen.add(up);
-                stopService();
-            }
-        });
-        //  }
-        // }).start();
+        }).start();
 
     }
+
+    /**
+     * 上传失败 处理
+     *
+     * @param up
+     */
+    private void failCheckRemove(UploadTaskBean up) {
+        up.setFail(true);
+        //移除上传队列任务 不移除 数据库 和总集合 下次继续上传
+        uploadQueue.remove(up);
+        //失败移除到末尾
+        sTaskBeen.remove(up);
+        sTaskBeen.add(up);
+        stopService();
+    }
+
 
     /**
      * 文件上传成功时 处理

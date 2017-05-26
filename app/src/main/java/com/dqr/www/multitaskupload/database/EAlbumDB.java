@@ -82,7 +82,7 @@ public class EAlbumDB {
      */
     public List<ProgressBean> getUploadTaskBean() {
         List<ProgressBean> list = new ArrayList<>();
-        Cursor cursor = db.query(UPLOAD_TASK_TABLE, null, null, null, null, null, " id desc");
+        Cursor cursor = db.query(UPLOAD_TASK_TABLE, null, null, null, null, null, " id asc");
         if (cursor.moveToFirst()) {
             do {
                 UploadTaskBean up = new UploadTaskBean();
@@ -103,6 +103,17 @@ public class EAlbumDB {
         }
         cursor.close();
         return list;
+    }
+
+    /**
+     * 根据ID 修改任务起始位置
+     * @param id
+     * @param startPos
+     */
+    public void updateTaskStartPosById(int id,long startPos){
+        ContentValues values = new ContentValues();
+        values.put("startPos",startPos);
+        db.update(UPLOAD_TASK_TABLE,values," id = ? ",new String[]{id + ""});
     }
 
     /**
