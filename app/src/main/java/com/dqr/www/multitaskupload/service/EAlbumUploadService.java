@@ -38,12 +38,14 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import okhttp3.Call;
+import okhttp3.Interceptor;
 import okhttp3.MediaType;
 import okhttp3.MultipartBody;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
+import okhttp3.ResponseBody;
 
 /**
  * Description：照片上传服务
@@ -176,15 +178,38 @@ public class EAlbumUploadService extends Service {
             super.handleMessage(msg);
             //添加请求
             if (msg.what == MESSAGE_NOTIFY_ADD_UPLOAD) {
+                if (!NetUtils.isNetworkConnected(EAlbumUploadService.this)) {//网络断开时  直接取消所有上传操作
+                    return;
+                } else {//有网络判断网络类型
+                    int netStateType = NetUtils.getConnectedType(EAlbumUploadService.this);
+                    if (netStateType == ConnectivityManager.TYPE_MOBILE) {//手机网络
+                        if (!Constant.MOBILE_UPLOAD) {//3g/4g不上传
+                            //取消正在上传的任务
+                            for (int i = 0; i < uploadQueue.size(); i++) {
+                                uploadQueue.get(i).getCall().cancel();
+                            }
+                            uploadQueue.clear();
+                            return;
+                        }
+                    } else if (netStateType == ConnectivityManager.TYPE_WIFI) {
+
+                    } else {//其他停止服务
+                        return;
+                    }
+                }
+                stopService();
                 if (waitUploadQueue.size() > 0) {
                     if (uploadQueue.size() < MAX_UPLOAD_SIZE) {
+
                         Log.d(TAG, "handleMessage: waitUploadQueue:" + waitUploadQueue.size() + "   uploadQueue:" + uploadQueue.size());
-                        UploadTaskBean taskBean = (UploadTaskBean) waitUploadQueue.get(0);
+                        final UploadTaskBean taskBean = (UploadTaskBean) waitUploadQueue.get(0);
                         taskBean.setFail(false);
                         taskBean.setDesc("排队中...");
                         uploadQueue.add(taskBean);
                         waitUploadQueue.remove(0);
                         addSingleUploadTask(taskBean);
+
+
                     }
                 }
             }
@@ -202,28 +227,7 @@ public class EAlbumUploadService extends Service {
             @Override
             public void run() {
                 while (!isStop) {
-                    if (!NetUtils.isNetworkConnected(EAlbumUploadService.this)) {//网络断开时  直接取消所有上传操作
-                        stopSelf();
-                        return;
-                    } else {//有网络判断网络类型
-                        int netStateType = NetUtils.getConnectedType(EAlbumUploadService.this);
-                        if (netStateType == ConnectivityManager.TYPE_MOBILE) {//手机网络
-                            if (!Constant.MOBILE_UPLOAD) {//3g/4g不上传
-                                //取消正在上传的任务
-                                for (int i = 0; i < uploadQueue.size(); i++) {
-                                    uploadQueue.get(i).getCall().cancel();
-                                }
-                                uploadQueue.clear();
-                                stopSelf();
-                                return;
-                            }
-                        } else if (netStateType == ConnectivityManager.TYPE_WIFI) {
 
-                        } else {//其他停止服务
-                            stopSelf();
-                            return;
-                        }
-                    }
                     mHandler.sendEmptyMessage(MESSAGE_NOTIFY_ADD_UPLOAD);
                     try {
                         Thread.sleep(200);
@@ -265,6 +269,18 @@ public class EAlbumUploadService extends Service {
                 .connectTimeout(120, TimeUnit.SECONDS)
                 .readTimeout(120, TimeUnit.SECONDS)
                 .writeTimeout(120, TimeUnit.SECONDS)
+                .addInterceptor(new Interceptor() {
+                    @Override
+                    public Response intercept(Chain chain) throws IOException {
+                        Request request = chain.request();
+                        Response response = chain.proceed(request);
+                        MediaType mediaType = response.body().contentType();
+                        String content= response.body().string();
+                        return response.newBuilder()
+                                .body(ResponseBody.create(mediaType, content))
+                                .build();
+                    }
+                })
                 .build();
     }
 
@@ -281,7 +297,7 @@ public class EAlbumUploadService extends Service {
             return;
         }
         //表示开始上传
-        up.setUploadedSize(up.getStartPos()==0?1:up.getStartPos());
+        up.setUploadedSize(up.getStartPos() == 0 ? 1 : up.getStartPos());
         up.setTotalSize(up.getFileSize());
 
         final MultipartBody.Builder builder = getPartBodyBuilder(up, file);
@@ -302,7 +318,7 @@ public class EAlbumUploadService extends Service {
 
                             up.setUploadedSize(up.getFileSize());
                             up.setTotalSize(up.getFileSize());
-                            successCheckRemove(up, JSONObject.toJavaObject(result,ImageBean.class));
+                            successCheckRemove(up, JSONObject.toJavaObject(result, ImageBean.class));
                             //延迟发送方便进度察看中 有一段停留时间
                             return;
                         }
@@ -344,7 +360,7 @@ public class EAlbumUploadService extends Service {
      * @param up
      */
     private void uploadFile(final UploadTaskBean up, final File file) {
-        Log.d(TAG, "开始执行上传网络操作: startPos:"+up.getStartPos());
+        Log.d(TAG, "开始执行上传网络操作: startPos:" + up.getStartPos());
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -367,18 +383,19 @@ public class EAlbumUploadService extends Service {
 
 
                         ProgressRequestBody pBody = new ProgressRequestBody(builder.build(), new ProgressListener() {
-                            long lastCount=0;
+                            long lastCount = 0;
+
                             @Override
                             public void progress(long bytesRead, long contentLength, boolean done) {
-                               // Log.d(TAG, "progress: getUploadedSize:"+up.getUploadedSize()+"  bytesRead:"+bytesRead+" lastCount:"+lastCount+"   sun:"+(up.getUploadedSize() + bytesRead-lastCount));
+                                // Log.d(TAG, "progress: getUploadedSize:"+up.getUploadedSize()+"  bytesRead:"+bytesRead+" lastCount:"+lastCount+"   sun:"+(up.getUploadedSize() + bytesRead-lastCount));
                                 //pb2. 当前已经上传值+此次上传的增量 即 bytesRead-lastCount  已经上传-上一次上传
-                                up.setUploadedSize(up.getUploadedSize() + bytesRead-lastCount);
-                                lastCount=bytesRead;
-                               // Log.d(TAG, "progress: bytesRead:" + bytesRead + "   contentLength:" + contentLength + "  fileSize:" + up.getFileSize() + " done:" + done);
+                                up.setUploadedSize(up.getUploadedSize() + bytesRead - lastCount);
+                                lastCount = bytesRead;
+                                // Log.d(TAG, "progress: bytesRead:" + bytesRead + "   contentLength:" + contentLength + "  fileSize:" + up.getFileSize() + " done:" + done);
                             }
                         });
                         // pb 1.由于请求体大小要大于分片文件大小 所以在文件已上传进度 将差值减去
-                        up.setUploadedSize(up.getUploadedSize()-(pBody.contentLength()-len));
+                        up.setUploadedSize(up.getUploadedSize() - (pBody.contentLength() - len));
 
                         final Request request = new Request.Builder()
                                 .url(url)
@@ -410,7 +427,7 @@ public class EAlbumUploadService extends Service {
                                         long addLength = up.getStartPos() + len;
                                         up.setStartPos(addLength);
                                         mEAlbumDB.updateTaskStartPosById(up.getId(), addLength);
-                                       // Log.d(TAG, "addLength: getStartPos: "+up.getStartPos()+"  len:"+len);
+                                        // Log.d(TAG, "addLength: getStartPos: "+up.getStartPos()+"  len:"+len);
                                     } else {//文件上传成功
                                         isStopWhile = true;
                                         successCheckRemove(up, baseModel.getResult());
@@ -452,7 +469,7 @@ public class EAlbumUploadService extends Service {
      */
     private synchronized void failCheckRemove(UploadTaskBean up) {
         up.setCall(null);
-        senedBroadcast(null,up,false);
+        senedBroadcast(null, up, false);
         up.setFail(true);
         //移除上传队列任务 不移除 数据库 和总集合 下次继续上传
         uploadQueue.remove(up);
@@ -471,8 +488,8 @@ public class EAlbumUploadService extends Service {
     private synchronized void successCheckRemove(UploadTaskBean up, ImageBean result) {
         //result !=null
         up.setCall(null);
-        senedBroadcast(result,up,true);//文件不存在时 也算上传成功 只是result为null
-        Log.d(TAG, up.getId()+" 文件上传成功 移除上传队列 和总集合");
+        senedBroadcast(result, up, true);//文件不存在时 也算上传成功 只是result为null
+        Log.d(TAG, up.getId() + " 文件上传成功 移除上传队列 和总集合");
         //移除任务
         mEAlbumDB.deleteUploadTaskById(up.getId());
         sTaskBeen.remove(up);
@@ -484,7 +501,7 @@ public class EAlbumUploadService extends Service {
      * 停止服务
      */
     private void stopService() {
-        if (waitUploadQueue.size() == 0&&uploadQueue.size()==0) {
+        if (waitUploadQueue.size() == 0 && uploadQueue.size() == 0) {
             stopSelf();
             isStop = true;
         }
@@ -499,12 +516,13 @@ public class EAlbumUploadService extends Service {
 
     /**
      * 文件成功失败时发送广播
+     *
      * @param imageBean 上传成功时bean
-     * @param taskBean 上传失败时任务bean
+     * @param taskBean  上传失败时任务bean
      * @param isSuccess 是否上传成功
      */
-    private void senedBroadcast(ImageBean imageBean,UploadTaskBean taskBean,boolean isSuccess){
-        Intent intent=new Intent(Constant.UPLOAD_SERVICE_ACTION);
+    private void senedBroadcast(ImageBean imageBean, UploadTaskBean taskBean, boolean isSuccess) {
+        Intent intent = new Intent(Constant.UPLOAD_SERVICE_ACTION);
         intent.putExtra(Constant.UPLOAD_TASK_EXTRA, taskBean);
         intent.putExtra(Constant.UPLOAD_IMAGE_EXTRA, imageBean);
         intent.putExtra("isSuccess", isSuccess);

@@ -30,6 +30,7 @@ public class EAlbumDB {
     /**
      * 数据库版本
      */
+    public static final int MAX_SIZE=300;
     public static final int VERSION = 1;
     private static EAlbumDB sEAlbumDB;
     private SQLiteDatabase db;
@@ -84,7 +85,7 @@ public class EAlbumDB {
      */
     public List<ProgressBean> getUploadTaskBean() {
         List<ProgressBean> list = new ArrayList<>();
-        Cursor cursor = db.query(UPLOAD_TASK_TABLE, null,"userId=?",new String[]{Constant.userId+""}, null, null, " id asc");
+        Cursor cursor = db.query(UPLOAD_TASK_TABLE, null,"userId=?",new String[]{Constant.userId+""}, null, null, " id asc limit 0,"+MAX_SIZE);
         if (cursor.moveToFirst()) {
             do {
                 UploadTaskBean up = new UploadTaskBean();

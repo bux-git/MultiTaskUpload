@@ -11,6 +11,8 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SimpleItemAnimator;
+import android.view.MotionEvent;
+import android.view.View;
 
 import com.dqr.www.multitaskupload.adapter.EAlbumProgressAdapter;
 import com.dqr.www.multitaskupload.bean.ProgressBean;
@@ -33,11 +35,12 @@ public class EAlbumUploadProgressActivity extends AppCompatActivity {
     private Timer timer;// 记时器
     private ChangeListViewTask task;// 进度轮询任务
     private boolean isRefresh=true;//是否刷新 滑动时不刷新
-
+    private boolean mIsRefreshing;//是否刷新中 刷新中不允许滑动
 
     private RecyclerView mRecyclerView;
     private EAlbumProgressAdapter mAdapter;
     private List<ProgressBean> mList;
+
 
 
     public static void start(Context context){
@@ -50,8 +53,8 @@ public class EAlbumUploadProgressActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.ealbum_upload_progress_list_activity);
 
-        mList =ProgressManager.getInstance().getList();
-
+        mList =new ArrayList<>();
+        mList.addAll(ProgressManager.getInstance().getList());
         if(mList==null) mList = new ArrayList<>();
         mAdapter = new EAlbumProgressAdapter(mList);
 
@@ -62,6 +65,8 @@ public class EAlbumUploadProgressActivity extends AppCompatActivity {
          mRecyclerView.setLayoutManager(new LinearLayoutManager(this));
 
         mRecyclerView.setAdapter(mAdapter);
+
+        //滑动时刷新
         mRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
             public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
@@ -70,6 +75,16 @@ public class EAlbumUploadProgressActivity extends AppCompatActivity {
                     isRefresh = true;
                 } else {
                     isRefresh = false;
+                }
+            }
+        });
+        mRecyclerView.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                if (mIsRefreshing) {
+                    return true;
+                } else {
+                    return false;
                 }
             }
         });
@@ -111,10 +126,14 @@ public class EAlbumUploadProgressActivity extends AppCompatActivity {
             super.handleMessage(msg);
             switch (msg.what) {
                 case NOTIFYDATA_CHANGED:
+                    mIsRefreshing=true;
+                    mList.clear();
+                    mList.addAll(ProgressManager.getInstance().getList());
                     if (mList.size() == 0) {
                         finish();
                     }
                     mAdapter.notifyDataSetChanged();
+                    mIsRefreshing=false;
                     break;
                 default:
                     break;

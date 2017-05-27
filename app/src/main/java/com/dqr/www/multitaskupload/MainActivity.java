@@ -155,11 +155,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                             , "{\"lng\":28,\"lat\":113}"
                             , 0
                             , "测试");
-                    list.add(taskBean);
+                    EAlbumUploadService.startAddUploadTask(MainActivity.this,taskBean);
                 }
                 mCursor.close();
                 Log.d(TAG, "run: ");
-                EAlbumUploadService.startAddUploadTask(MainActivity.this,list);
+
 
             }
         }).start();
