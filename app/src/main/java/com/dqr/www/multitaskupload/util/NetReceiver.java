@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.ConnectivityManager;
 
+import com.dqr.www.multitaskupload.Constant;
 import com.dqr.www.multitaskupload.service.EAlbumUploadService;
 
 /**
@@ -15,7 +16,7 @@ import com.dqr.www.multitaskupload.service.EAlbumUploadService;
 
 public class NetReceiver extends BroadcastReceiver {
     @Override
-    public void onReceive(Context context, Intent intent) {
+    public void onReceive(final Context context, Intent intent) {
         String action = intent.getAction();
         if (ConnectivityManager.CONNECTIVITY_ACTION.equals(action)) {
             boolean isConnected = NetUtils.isNetworkConnected(context);
@@ -26,7 +27,11 @@ public class NetReceiver extends BroadcastReceiver {
 
 
             if (isConnected) {//有网络时 开启照片上传服务
-                EAlbumUploadService.startUploadTask(context);
+                if(Constant.userId>0) {//必须有UserId 才能开启服务
+                    EAlbumUploadService.startUploadTask(context);
+                }
+
+
             }
 
         }

@@ -1,7 +1,10 @@
 package com.dqr.www.multitaskupload;
 
 import android.Manifest;
+import android.content.BroadcastReceiver;
 import android.content.ContentResolver;
+import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
@@ -22,6 +25,7 @@ import com.dqr.www.multitaskupload.util.FileUtils;
 import com.dqr.www.multitaskupload.util.NetReceiver;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
@@ -32,6 +36,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private EAlbumDB mEAlbumDB;
     private NetReceiver mReceiver;
+
+    private BroadcastReceiver mUploadReceiver=new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String action = intent.getAction();
+            if (Constant.UPLOAD_SERVICE_ACTION.equals(action)) {//照片上传广播
+
+            }
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -127,7 +141,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         MediaStore.Images.Media.MIME_TYPE + "=? or " + MediaStore.Images.Media.MIME_TYPE + "=?", new String[]{"image/jpeg", "image/png"},
                         MediaStore.Images.Media.DATE_MODIFIED);
                 Log.e(TAG, mCursor.getCount() + "");
-
+                List<ProgressBean> list = new ArrayList<ProgressBean>();
                 while (mCursor.moveToNext()) {
                     // 获取图片的路径
                     String path = mCursor.getString(mCursor.getColumnIndex(MediaStore.Images.Media.DATA));
@@ -141,11 +155,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                             , "{\"lng\":28,\"lat\":113}"
                             , 0
                             , "测试");
-                    EAlbumUploadService.startAddUploadTask(MainActivity.this, taskBean);
+                    list.add(taskBean);
                 }
                 mCursor.close();
                 Log.d(TAG, "run: ");
-
+                EAlbumUploadService.startAddUploadTask(MainActivity.this,list);
 
             }
         }).start();

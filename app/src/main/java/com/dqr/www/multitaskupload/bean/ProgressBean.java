@@ -1,6 +1,7 @@
 package com.dqr.www.multitaskupload.bean;
 
-import java.io.Serializable;
+import android.os.Parcel;
+import android.os.Parcelable;
 
 import okhttp3.Call;
 
@@ -10,7 +11,7 @@ import okhttp3.Call;
  * Date： 2017-05-23 15:26
  */
 
-public class ProgressBean implements Serializable{
+public class ProgressBean implements Parcelable {
 
     public static final int MAX_PROGRESS=1000;
 
@@ -154,4 +155,32 @@ public class ProgressBean implements Serializable{
         } else
             return String.format("%dB", size);
     }
+
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(this.albumName);
+        dest.writeString(this.desc);
+        dest.writeLong(this.uploadedSize);
+        dest.writeLong(this.totalSize);
+        dest.writeString(this.filePath);
+        dest.writeByte(this.isSuccess ? (byte) 1 : (byte) 0);
+        dest.writeByte(this.isFail ? (byte) 1 : (byte) 0);
+    }
+
+    protected ProgressBean(Parcel in) {
+        this.albumName = in.readString();
+        this.desc = in.readString();
+        this.uploadedSize = in.readLong();
+        this.totalSize = in.readLong();
+        this.filePath = in.readString();
+        this.isSuccess = in.readByte() != 0;
+        this.isFail = in.readByte() != 0;
+    }
+
 }

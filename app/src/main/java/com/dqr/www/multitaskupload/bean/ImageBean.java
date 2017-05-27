@@ -1,12 +1,15 @@
 package com.dqr.www.multitaskupload.bean;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 /**
  * Description：
  * Author：LiuYM
  * Date： 2017-05-26 17:57
  */
 
-public class ImageBean {
+public class ImageBean implements Parcelable{
 
 
     /**
@@ -42,6 +45,9 @@ public class ImageBean {
     private String type;
     private String updatedAt;
     private String userId;
+
+    public ImageBean() {
+    }
 
     public String getCreatedAt() {
         return createdAt;
@@ -162,4 +168,61 @@ public class ImageBean {
     public void setUserId(String userId) {
         this.userId = userId;
     }
+
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(this.createdAt);
+        dest.writeString(this.fileAddr);
+        dest.writeString(this.fileAttribute);
+        dest.writeString(this.fileName);
+        dest.writeString(this.fileSize);
+        dest.writeString(this.fileTime);
+        dest.writeString(this.hashMd5);
+        dest.writeString(this.id);
+        dest.writeString(this.img);
+        dest.writeString(this.smallimg);
+        dest.writeString(this.source);
+        dest.writeString(this.status);
+        dest.writeString(this.type);
+        dest.writeString(this.updatedAt);
+        dest.writeString(this.userId);
+    }
+
+
+
+    protected ImageBean(Parcel in) {
+        this.createdAt = in.readString();
+        this.fileAddr = in.readString();
+        this.fileAttribute = in.readString();
+        this.fileName = in.readString();
+        this.fileSize = in.readString();
+        this.fileTime = in.readString();
+        this.hashMd5 = in.readString();
+        this.id = in.readString();
+        this.img = in.readString();
+        this.smallimg = in.readString();
+        this.source = in.readString();
+        this.status = in.readString();
+        this.type = in.readString();
+        this.updatedAt = in.readString();
+        this.userId = in.readString();
+    }
+
+    public static final Creator<ImageBean> CREATOR = new Creator<ImageBean>() {
+        @Override
+        public ImageBean createFromParcel(Parcel source) {
+            return new ImageBean(source);
+        }
+
+        @Override
+        public ImageBean[] newArray(int size) {
+            return new ImageBean[size];
+        }
+    };
 }

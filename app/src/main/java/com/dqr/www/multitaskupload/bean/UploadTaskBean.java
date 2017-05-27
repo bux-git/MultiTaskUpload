@@ -1,6 +1,7 @@
 package com.dqr.www.multitaskupload.bean;
 
-import java.io.Serializable;
+import android.os.Parcel;
+import android.os.Parcelable;
 
 /**
  * Description：相册上传参数信息类
@@ -8,7 +9,7 @@ import java.io.Serializable;
  * Date： 2017-05-24 14:00
  */
 
-public class UploadTaskBean extends ProgressBean implements Serializable {
+public class UploadTaskBean extends ProgressBean implements Parcelable {
 
     private int id;//表中自增ID
     private long fileSize;//文件大小
@@ -162,4 +163,52 @@ public class UploadTaskBean extends ProgressBean implements Serializable {
     public void setAlbumId(int albumId) {
         this.albumId = albumId;
     }
+
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        super.writeToParcel(dest, flags);
+        dest.writeInt(this.id);
+        dest.writeLong(this.fileSize);
+        dest.writeLong(this.startPos);
+        dest.writeString(this.md5);
+        dest.writeValue(this.fileTime);
+        dest.writeString(this.fileAddr);
+        dest.writeString(this.fileAttribute);
+        dest.writeInt(this.source);
+        dest.writeInt(this.type);
+        dest.writeInt(this.albumId);
+    }
+
+    protected UploadTaskBean(Parcel in) {
+        super(in);
+        this.id = in.readInt();
+        this.fileSize = in.readLong();
+        this.startPos = in.readLong();
+        this.md5 = in.readString();
+        this.fileTime = (Long) in.readValue(Long.class.getClassLoader());
+        this.fileAddr = in.readString();
+        this.fileAttribute = in.readString();
+        this.source = in.readInt();
+        this.type = in.readInt();
+        this.albumId = in.readInt();
+
+    }
+
+    public static final Creator<UploadTaskBean> CREATOR = new Creator<UploadTaskBean>() {
+        @Override
+        public UploadTaskBean createFromParcel(Parcel source) {
+            return new UploadTaskBean(source);
+        }
+
+        @Override
+        public UploadTaskBean[] newArray(int size) {
+            return new UploadTaskBean[size];
+        }
+    };
 }

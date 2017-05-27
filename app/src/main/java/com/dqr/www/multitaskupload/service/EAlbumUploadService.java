@@ -7,6 +7,7 @@ import android.net.ConnectivityManager;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
+import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Log;
@@ -29,7 +30,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
-import java.io.Serializable;
 import java.nio.charset.Charset;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -132,7 +132,7 @@ public class EAlbumUploadService extends Service {
      */
     public static void startAddUploadTask(Context context, List<ProgressBean> uploadTaskBeans) {
         Intent intent = new Intent(context, EAlbumUploadService.class);
-        intent.putExtra("addTasks", (Serializable) uploadTaskBeans);
+        intent.putParcelableArrayListExtra("addTasks", (ArrayList<? extends Parcelable>) uploadTaskBeans);
         context.startService(intent);
     }
 
@@ -148,8 +148,8 @@ public class EAlbumUploadService extends Service {
             failList.addAll(sTaskBeen);
         }
 
-        UploadTaskBean taskBean = (UploadTaskBean) intent.getSerializableExtra("addSingleTask");
-        List<ProgressBean> uploadTaskBeans = (List<ProgressBean>) intent.getSerializableExtra("addTasks");
+        UploadTaskBean taskBean = (UploadTaskBean) intent.getParcelableExtra("addSingleTask");
+        List<ProgressBean> uploadTaskBeans = intent.getParcelableArrayListExtra("addTasks");
         if (taskBean != null) {
             addUploadTaskToSqlAndQueue(taskBean);
         } else if (uploadTaskBeans != null) {
@@ -164,6 +164,8 @@ public class EAlbumUploadService extends Service {
             waitUploadQueue.addAll(failList);
         }
 
+        //检测 没上传数据时直接关闭服务
+        stopService();
         return super.onStartCommand(intent, flags, startId);
     }
 
@@ -279,7 +281,7 @@ public class EAlbumUploadService extends Service {
             return;
         }
         //表示开始上传
-        up.setUploadedSize(up.getStartPos());
+        up.setUploadedSize(up.getStartPos()==0?1:up.getStartPos());
         up.setTotalSize(up.getFileSize());
 
         final MultipartBody.Builder builder = getPartBodyBuilder(up, file);
@@ -310,7 +312,8 @@ public class EAlbumUploadService extends Service {
 
                     @Override
                     protected void onFail(String msg) {
-                        uploadFile(up, file);
+                        failCheckRemove(up);
+                        //uploadFile(up, file);
                     }
                 });
 
@@ -422,8 +425,10 @@ public class EAlbumUploadService extends Service {
                         }
                     }
                 } catch (FileNotFoundException e) {
+                    failCheckRemove(up);
                     e.printStackTrace();
                 } catch (IOException e) {
+                    failCheckRemove(up);
                     e.printStackTrace();
                 } finally {
                     if (randomAccessFile != null) {
@@ -445,7 +450,9 @@ public class EAlbumUploadService extends Service {
      *
      * @param up
      */
-    private void failCheckRemove(UploadTaskBean up) {
+    private synchronized void failCheckRemove(UploadTaskBean up) {
+        up.setCall(null);
+        senedBroadcast(null,up,false);
         up.setFail(true);
         //移除上传队列任务 不移除 数据库 和总集合 下次继续上传
         uploadQueue.remove(up);
@@ -461,9 +468,11 @@ public class EAlbumUploadService extends Service {
      *
      * @param up
      */
-    private void successCheckRemove(UploadTaskBean up, ImageBean result) {
+    private synchronized void successCheckRemove(UploadTaskBean up, ImageBean result) {
         //result !=null
-        Log.d(TAG, "文件上传成功 移除上传队列 和总集合: " + result.toString());
+        up.setCall(null);
+        senedBroadcast(result,up,true);//文件不存在时 也算上传成功 只是result为null
+        Log.d(TAG, up.getId()+" 文件上传成功 移除上传队列 和总集合");
         //移除任务
         mEAlbumDB.deleteUploadTaskById(up.getId());
         sTaskBeen.remove(up);
@@ -485,5 +494,20 @@ public class EAlbumUploadService extends Service {
     public void onDestroy() {
         super.onDestroy();
         Log.d(TAG, "onDestroy: ");
+    }
+
+
+    /**
+     * 文件成功失败时发送广播
+     * @param imageBean 上传成功时bean
+     * @param taskBean 上传失败时任务bean
+     * @param isSuccess 是否上传成功
+     */
+    private void senedBroadcast(ImageBean imageBean,UploadTaskBean taskBean,boolean isSuccess){
+        Intent intent=new Intent(Constant.UPLOAD_SERVICE_ACTION);
+        intent.putExtra(Constant.UPLOAD_TASK_EXTRA, taskBean);
+        intent.putExtra(Constant.UPLOAD_IMAGE_EXTRA, imageBean);
+        intent.putExtra("isSuccess", isSuccess);
+        sendBroadcast(intent);//刷新照片列表
     }
 }
