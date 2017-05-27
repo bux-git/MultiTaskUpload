@@ -84,7 +84,7 @@ public class EAlbumDB {
      */
     public List<ProgressBean> getUploadTaskBean() {
         List<ProgressBean> list = new ArrayList<>();
-        Cursor cursor = db.query(UPLOAD_TASK_TABLE, null, null, null, null, null, " id asc");
+        Cursor cursor = db.query(UPLOAD_TASK_TABLE, null,"userId=?",new String[]{Constant.userId+""}, null, null, " id asc");
         if (cursor.moveToFirst()) {
             do {
                 UploadTaskBean up = new UploadTaskBean();
@@ -141,7 +141,7 @@ public class EAlbumDB {
      * @return
      */
     public boolean isHasSameTaskByMD5(String md5) {
-        Cursor cursor = db.query(UPLOAD_TASK_TABLE, null, "md5=?", new String[]{md5}, null, null, " id asc");
+        Cursor cursor = db.query(UPLOAD_TASK_TABLE, null, "md5=? and userId=?", new String[]{md5,Constant.userId+""}, null, null, " id asc");
 
         if (cursor.moveToFirst()) {
             Log.d(TAG, "saveUploadTask: 已经存在相同任务" + cursor.getString(cursor.getColumnIndex("filePath")));

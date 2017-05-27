@@ -157,7 +157,6 @@ public class EAlbumUploadService extends Service {
             for (int i = 0; i < uploadTaskBeans.size(); i++) {
                 ProgressBean bean = uploadTaskBeans.get(i);
                 addUploadTaskToSqlAndQueue((UploadTaskBean) bean);
-                Log.d(TAG, "service run: " + i);
             }
 
         }
@@ -301,7 +300,7 @@ public class EAlbumUploadService extends Service {
 
                             up.setUploadedSize(up.getFileSize());
                             up.setTotalSize(up.getFileSize());
-                            successCheckRemove(up, result);
+                            successCheckRemove(up, JSONObject.toJavaObject(result,ImageBean.class));
                             //延迟发送方便进度察看中 有一段停留时间
                             return;
                         }
@@ -342,7 +341,7 @@ public class EAlbumUploadService extends Service {
      * @param up
      */
     private void uploadFile(final UploadTaskBean up, final File file) {
-        Log.d(TAG, "开始执行上传网络操作: "+up.getStartPos());
+        Log.d(TAG, "开始执行上传网络操作: startPos:"+up.getStartPos());
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -411,7 +410,7 @@ public class EAlbumUploadService extends Service {
                                        // Log.d(TAG, "addLength: getStartPos: "+up.getStartPos()+"  len:"+len);
                                     } else {//文件上传成功
                                         isStopWhile = true;
-                                        successCheckRemove(up, null);
+                                        successCheckRemove(up, baseModel.getResult());
                                     }
                                     break;
 
@@ -462,9 +461,9 @@ public class EAlbumUploadService extends Service {
      *
      * @param up
      */
-    private void successCheckRemove(UploadTaskBean up, JSONObject result) {
+    private void successCheckRemove(UploadTaskBean up, ImageBean result) {
         //result !=null
-        Log.d(TAG, "文件上传成功 移除上传队列 和总集合: " + result);
+        Log.d(TAG, "文件上传成功 移除上传队列 和总集合: " + result.toString());
         //移除任务
         mEAlbumDB.deleteUploadTaskById(up.getId());
         sTaskBeen.remove(up);
