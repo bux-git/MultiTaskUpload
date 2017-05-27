@@ -31,7 +31,8 @@ public class EAlbumDBHelper extends SQLiteOpenHelper {
             "source integer," +//0未知来源1安卓2IOS3PC4其他
             "type integer," +//文件类型1图片2视频3音频
             "albumId integer," +//	相册ID
-            "albumName text" +//相册名称
+            "albumName text," +//相册名称
+            "userId integer" +//userId
             ")";
 
     public EAlbumDBHelper(Context context, String name, SQLiteDatabase.CursorFactory factory, int version) {

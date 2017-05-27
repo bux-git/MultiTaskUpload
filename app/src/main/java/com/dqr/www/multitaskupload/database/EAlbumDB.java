@@ -6,6 +6,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
 
+import com.dqr.www.multitaskupload.Constant;
 import com.dqr.www.multitaskupload.bean.ProgressBean;
 import com.dqr.www.multitaskupload.bean.UploadTaskBean;
 
@@ -68,6 +69,7 @@ public class EAlbumDB {
             values.put("type", up.getType());
             values.put("albumId", up.getAlbumId());
             values.put("albumName", up.getAlbumName());
+            values.put("userId", Constant.userId);
             long id = db.insert(UPLOAD_TASK_TABLE, null, values);
             Log.d(TAG, "saveUploadTask:success id:" + id);
             return id;

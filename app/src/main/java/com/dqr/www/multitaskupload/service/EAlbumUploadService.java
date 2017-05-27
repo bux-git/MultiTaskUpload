@@ -70,7 +70,7 @@ public class EAlbumUploadService extends Service {
     private OkHttpClient mClient;
     private String url = "http://test.dqr2015.cn:8888/EarthMan/newAlbums/bpuploadPhoto/110/token";
 
-    // private String url = "http://192.168.0.74:8080/EarthMan/newAlbums/bpuploadPhoto/110/token";
+    // private String url = "http://192.168.0.64:8080/EarthMan/newAlbums/bpuploadPhoto/110/token";
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {

@@ -8,4 +8,5 @@ package com.dqr.www.multitaskupload;
 
 public class Constant {
     public static boolean MOBILE_UPLOAD=true;//3g/4g是否上传
+    public static final int userId=7582;
 }

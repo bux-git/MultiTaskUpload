@@ -1,14 +1,18 @@
 package com.dqr.www.multitaskupload;
 
+import android.Manifest;
 import android.content.ContentResolver;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.Toast;
 
 import com.dqr.www.multitaskupload.bean.ProgressBean;
 import com.dqr.www.multitaskupload.bean.UploadTaskBean;
@@ -24,6 +28,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private static final String TAG = "MainActivity";
     private static final int COUNT = 10000;
     private static final int DW = 1024;
+    private static final int REQUEST_CODE = 123;
 
     private EAlbumDB mEAlbumDB;
     private NetReceiver mReceiver;
@@ -81,16 +86,40 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 Log.d(TAG, "onClick: " + list.size());
                 break;
             case R.id.btn_select:
-                getUploadTaskBean();
+                int hasWriteContactsPermission = 0;
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+                    hasWriteContactsPermission = checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE);
+                }
+                if (hasWriteContactsPermission != PackageManager.PERMISSION_GRANTED) {
+                    ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, REQUEST_CODE);
+                    return;
+                }else{
+                    getUploadTaskBean();
+                }
                 break;
         }
     }
 
 
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        if (requestCode == REQUEST_CODE) {
+            if (permissions[0].equals(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                    && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                //用户同意使用write
+                getUploadTaskBean();
+            } else {
+                //用户不同意，自行处理即可
+                Toast.makeText(this, "无权限", Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+
     private void getUploadTaskBean() {
         new Thread(new Runnable() {
             @Override
             public void run() {
+
                 Uri mImageUri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
                 ContentResolver mContentResolver = getContentResolver();
                 // 只查询jpeg和png的图片
