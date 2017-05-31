@@ -14,12 +14,12 @@ import android.util.Log;
 public class EAlbumDBHelper extends SQLiteOpenHelper {
     private static final String TAG = "EAlbumDBHelper";
 
-    public static final String UPLOAD_TASK_TABLE="upload_task";
+    public static final String UPLOAD_TASK_TABLE = "upload_task";
     private Context mContext;
     /**
      * 待上传数据记录表
      */
-    public static final String UPLOAD_TASK = "create table "+UPLOAD_TASK_TABLE+" (" +
+    public static final String UPLOAD_TASK = "create table " + UPLOAD_TASK_TABLE + " (" +
             "id integer primary key autoincrement," +
             "fileSize integer," +//文件大小
             "startPos integer," +//分块开始位置，从0开始
@@ -37,7 +37,7 @@ public class EAlbumDBHelper extends SQLiteOpenHelper {
 
     public EAlbumDBHelper(Context context, String name, SQLiteDatabase.CursorFactory factory, int version) {
         super(context, name, factory, version);
-        this.mContext=context;
+        this.mContext = context;
     }
 
     @Override
