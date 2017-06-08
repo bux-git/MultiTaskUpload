@@ -10,6 +10,7 @@ import android.os.Message;
 import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
 import com.alibaba.fastjson.JSON;
@@ -68,6 +69,8 @@ public class EAlbumUploadService extends Service {
     public static List<ProgressBean> sTaskBeen = new ArrayList<>();//上传任务集合
     private List<ProgressBean> waitUploadQueue;//待上传集合
     private List<ProgressBean> uploadQueue;//正在上传集合
+    //本地广播
+    private LocalBroadcastManager mLocalBroadcastManager;
 
     private OkHttpClient mClient;
     private String url = "";
@@ -101,6 +104,8 @@ public class EAlbumUploadService extends Service {
 
         //初始化网络请求相关参数
         initOKHttp();
+
+        mLocalBroadcastManager = LocalBroadcastManager.getInstance(this);
     }
 
 
@@ -518,8 +523,9 @@ public class EAlbumUploadService extends Service {
     }
 
 
+
     /**
-     * 文件成功失败时发送广播
+     * 文件成功失败时发送本地广播
      *
      * @param imageBean 上传成功时bean
      * @param taskBean  上传失败时任务bean
@@ -530,6 +536,6 @@ public class EAlbumUploadService extends Service {
         intent.putExtra(Constant.UPLOAD_TASK_EXTRA, taskBean);
         intent.putExtra(Constant.UPLOAD_IMAGE_EXTRA, imageBean);
         intent.putExtra("isSuccess", isSuccess);
-        sendBroadcast(intent);//刷新照片列表
+        mLocalBroadcastManager.sendBroadcast(intent);//刷新照片列表
     }
 }

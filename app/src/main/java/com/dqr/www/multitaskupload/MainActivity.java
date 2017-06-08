@@ -5,12 +5,14 @@ import android.content.BroadcastReceiver;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
@@ -42,7 +44,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
             if (Constant.UPLOAD_SERVICE_ACTION.equals(action)) {//照片上传广播
-
+                Log.d(TAG, "onReceive: ");
             }
         }
     };
@@ -65,8 +67,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         mEAlbumDB = EAlbumDB.getInstance(this);
 
+        LocalBroadcastManager.getInstance(this).registerReceiver(mUploadReceiver,new IntentFilter(Constant.UPLOAD_SERVICE_ACTION));
+
     }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(mUploadReceiver);
+    }
 
     @Override
     public void onClick(View v) {
