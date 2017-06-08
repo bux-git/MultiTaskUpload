@@ -70,9 +70,8 @@ public class EAlbumUploadService extends Service {
     private List<ProgressBean> uploadQueue;//正在上传集合
 
     private OkHttpClient mClient;
-    private String url = "http://test.dqr2015.cn:8888/EarthMan/newAlbums/bpuploadPhoto/110/token";
+    private String url = "";
 
-    // private String url = "http://192.168.0.74:8080/EarthMan/newAlbums/bpuploadPhoto/16699/98e36138faf9a87afd56dc251bb14102";
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
@@ -510,6 +509,11 @@ public class EAlbumUploadService extends Service {
     @Override
     public void onDestroy() {
         super.onDestroy();
+        mEAlbumDB=null;
+        mHandler=null;
+        mClient=null;
+        waitUploadQueue=null;
+        uploadQueue=null;
         Log.d(TAG, "onDestroy: ");
     }
 
