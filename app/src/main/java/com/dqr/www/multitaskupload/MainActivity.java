@@ -19,6 +19,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
+import com.dqr.www.multitaskupload.bean.ImageBean;
 import com.dqr.www.multitaskupload.bean.ProgressBean;
 import com.dqr.www.multitaskupload.bean.UploadTaskBean;
 import com.dqr.www.multitaskupload.database.EAlbumDB;
@@ -39,7 +40,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private EAlbumDB mEAlbumDB;
     private NetReceiver mReceiver;
 
-    private BroadcastReceiver mUploadReceiver=new BroadcastReceiver() {
+    private BroadcastReceiver mUploadReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
@@ -67,7 +68,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         mEAlbumDB = EAlbumDB.getInstance(this);
 
-        LocalBroadcastManager.getInstance(this).registerReceiver(mUploadReceiver,new IntentFilter(Constant.UPLOAD_SERVICE_ACTION));
+        LocalBroadcastManager.getInstance(this).registerReceiver(mUploadReceiver, new IntentFilter(Constant.UPLOAD_SERVICE_ACTION));
 
     }
 
@@ -116,10 +117,54 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 if (hasWriteContactsPermission != PackageManager.PERMISSION_GRANTED) {
                     ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, REQUEST_CODE);
                     return;
-                }else{
+                } else {
                     getUploadTaskBean();
                 }
                 break;
+            case R.id.btn_add_single:
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        List<ImageBean> beanList = getImageList();
+                        System.out.println("开始插入数据:" + System.currentTimeMillis());
+                        for (int i = 0; i < beanList.size(); i++) {
+                            ImageBean bean = beanList.get(i);
+                            mEAlbumDB.saveUploadImage(bean);
+                        }
+                        System.out.println("插入结束:" + System.currentTimeMillis());
+                    }
+                }).start();
+
+                break;
+            case R.id.btn_add_select:
+                System.out.println("开始查询数据:" + System.currentTimeMillis());
+                List<ImageBean> beans = mEAlbumDB.getAllImageBean();
+                System.out.println("查询结束:" + System.currentTimeMillis());
+                for (int i = 0; i < beans.size(); i++) {
+                    ImageBean bean = beans.get(i);
+                    Log.d(TAG, "onClick: " + i + "  Image:" + bean.getId());
+                }
+                break;
+            case R.id.btn_add_multi:
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        List<ImageBean> beanList = getImageList();
+                        long start=System.currentTimeMillis();
+                        System.out.println("开始插入数据:" +start );
+                        mEAlbumDB.saveUploadImage(beanList);
+                        long end=System.currentTimeMillis();
+                        System.out.println("插入结束:" +end+"   total:"+(end-start)/1000 );
+                    }
+                }).start();
+
+                break;
+            case R.id.btn_add_delete:
+                System.out.println("开始删除数据:" + System.currentTimeMillis());
+                mEAlbumDB.deleteAllImage();
+                System.out.println("删除结束:" + System.currentTimeMillis());
+                break;
+
         }
     }
 
@@ -164,7 +209,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                             , "{\"lng\":28,\"lat\":113}"
                             , 0
                             , "测试");
-                    EAlbumUploadService.startAddUploadTask(MainActivity.this,taskBean);
+                    EAlbumUploadService.startAddUploadTask(MainActivity.this, taskBean);
                 }
                 mCursor.close();
                 Log.d(TAG, "run: ");
@@ -174,4 +219,30 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }).start();
     }
 
+    public List<ImageBean> getImageList() {
+        List<ImageBean> beanList = new ArrayList<>();
+        for (int i = 0; i < 10000; i++) {
+            ImageBean bean = new ImageBean();
+            bean.setId(i);
+            bean.setUserId(Constant.userId);
+            bean.setImg("http://test.dqr2015.cn:8888/uploadFiles/201706/7852/97deaae975354cfb9c2cfdb924b73a8f.jpg");
+            bean.setFileName("IMG_20170607_173632_BURST30.jpg");
+            bean.setSmallimg("http://test.dqr2015.cn:8888/uploadFiles/201706/7852/small_97deaae975354cfb9c2cfdb924b73a8f.jpg");
+            bean.setType(1);
+            bean.setHashMd5("998ba3c4db7f35486fe7459b240cfcae");
+            bean.setFileTime(1496784996000L);
+            bean.setFileAddr("湖南 长沙");
+            bean.setFileSize(2518483);
+            bean.setFileAttribute("{\"lng\":28,\"lat\":113}");
+            bean.setStatus(1);
+            bean.setSource(1);
+            bean.setCreatedAt(1496920685000L);
+            bean.setUpdatedAt(1496920685000L);
+            bean.setUpImg("");
+            bean.setImg_edit("/uploadFiles/201706/7852/97deaae975354cfb9c2cfdb924b73a8f.jpg");
+            bean.setSmallimg_edit("/uploadFiles/201706/7852/small_97deaae975354cfb9c2cfdb924b73a8f.jpg");
+            beanList.add(bean);
+        }
+        return beanList;
+    }
 }

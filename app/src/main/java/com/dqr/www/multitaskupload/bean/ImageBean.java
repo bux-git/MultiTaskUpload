@@ -258,4 +258,28 @@ public class ImageBean implements Parcelable {
             return new ImageBean[size];
         }
     };
+
+    @Override
+    public String toString() {
+        return "ImageBean{" +
+                "id=" + id +
+                ", userId=" + userId +
+                ", img='" + img + '\'' +
+                ", fileName='" + fileName + '\'' +
+                ", smallimg='" + smallimg + '\'' +
+                ", type=" + type +
+                ", hashMd5='" + hashMd5 + '\'' +
+                ", fileTime=" + fileTime +
+                ", fileAddr='" + fileAddr + '\'' +
+                ", fileSize=" + fileSize +
+                ", fileAttribute='" + fileAttribute + '\'' +
+                ", status=" + status +
+                ", source=" + source +
+                ", createdAt=" + createdAt +
+                ", updatedAt=" + updatedAt +
+                ", upImg='" + upImg + '\'' +
+                ", img_edit='" + img_edit + '\'' +
+                ", smallimg_edit='" + smallimg_edit + '\'' +
+                '}';
+    }
 }

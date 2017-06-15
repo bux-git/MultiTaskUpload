@@ -43,11 +43,11 @@ public class EAlbumDBHelper extends SQLiteOpenHelper {
             "id integer," +
             "userId integer," +
             "img text," +
-            "fileName text" +
+            "fileName text," +
             "smallimg text," +
-            "type integer" +
-            "hashMd5" +
-            "fileTime integer" +
+            "type integer," +
+            "hashMd5," +
+            "fileTime integer," +
             "fileAddr text," +
             "fileSize text," +
             "fileAttribute text," +

@@ -4,6 +4,7 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteStatement;
 import android.util.Log;
 
 import com.dqr.www.multitaskupload.Constant;
@@ -156,6 +157,16 @@ public class EAlbumDB {
         return false;
     }
 
+    public static final String QUERY_UPLOAD_IMAGE = "insert into " + EALBUM_TABLE_NAME +
+            " ( id, userId, img, fileName, smallimg" +
+            ", type, hashMd5, fileTime, fileAddr, fileSize" +
+            ", fileAttribute, status, source, createdAt, updatedAt" +
+            ", upImg, img_edit, smallimg_edit)" +
+            " select ?, ?, ?, ?, ?" +
+            ", ?, ?, ?, ?, ?" +
+            ", ?, ?, ?, ?, ?" +
+            ", ?, ?, ? " +
+            "where not exists(select 1 from  " + EALBUM_TABLE_NAME + " where userId=? and id=?)";
 
     /**
      * 存储上传成功图片信息
@@ -163,36 +174,90 @@ public class EAlbumDB {
      * @param img
      */
     public synchronized void saveUploadImage(ImageBean img) {
-        db.execSQL("insert into " + EALBUM_TABLE_NAME +
-                        " ( id, userId, img, fileName, smallimg" +
-                        ", type, hashMd5, fileTime, fileAddr, fileSize" +
-                        ", fileAttribute, status, source, createdAt, updatedAt" +
-                        ", upImg, img_edit, smallimg_edit)" +
-                        " select ?, ?, ?, ?, ?" +
-                        ", ?, ?, ?, ?, ?" +
-                        ", ?, ?, ?, ?, ?" +
-                        ", ?, ?, ? " +
-                        "where not exists(select 1 from  " + EALBUM_TABLE_NAME + " where userId=? and id=?)" +
-                        ")",
+        db.execSQL(QUERY_UPLOAD_IMAGE, new String[]{String.valueOf(img.getId())
+                , String.valueOf(img.getUserId())
+                , img.getImg()
+                , img.getFileName()
+                , img.getSmallimg()
+                , String.valueOf(img.getType())
 
-                new String[]{String.valueOf(img.getId())
-                        , String.valueOf(img.getUserId())
-                        , img.getImg(), img.getFileName()
-                        , img.getSmallimg()
-                        , String.valueOf(img.getType())
-                        , img.getHashMd5()
-                        , String.valueOf(img.getFileTime())
-                        , img.getFileAddr()
-                        , String.valueOf(img.getFileSize())
-                        , img.getFileAttribute()
-                        , String.valueOf(img.getStatus())
-                        , String.valueOf(img.getSource())
-                        , String.valueOf(img.getCreatedAt())
-                        , String.valueOf(img.getUpdatedAt())
-                        , img.getUpImg(), img.getImg_edit()
-                        , img.getSmallimg_edit()
-                        , String.valueOf(Constant.userId)
-                        , String.valueOf(img.getId())});
+                , img.getHashMd5()
+                , String.valueOf(img.getFileTime())
+                , img.getFileAddr()
+                , String.valueOf(img.getFileSize())
+                , img.getFileAttribute()
+
+                , String.valueOf(img.getStatus())
+                , String.valueOf(img.getSource())
+                , String.valueOf(img.getCreatedAt())
+                , String.valueOf(img.getUpdatedAt())
+                , img.getUpImg()
+
+                , img.getImg_edit()
+                , img.getSmallimg_edit()
+                , String.valueOf(Constant.userId)
+                , String.valueOf(img.getId())});
+    }
+
+
+    public synchronized void saveUploadImage(List<ImageBean> imgs) {
+        int maxSize=3000;//每一次批量插入数量
+
+        int imgSize = imgs.size();
+
+        //一共需要执行多少次
+        int fSize = imgSize % maxSize;//取余
+
+        int num;
+        if(fSize==0){
+            num=imgSize/maxSize;
+        }else{// if(fSize>0)
+            num=imgSize/maxSize+1;
+        }
+
+        for(int i=0;i<num;i++){
+
+            SQLiteStatement stat = db.compileStatement(QUERY_UPLOAD_IMAGE);
+            db.beginTransaction();
+
+            int startJ=i*maxSize;//起始值
+            int endJ=(i+1)*maxSize;//结束值
+
+            for (int j = startJ; j <endJ ; j++) {
+
+                if(j==imgSize)break;
+
+                ImageBean img = imgs.get(j);
+
+                stat.bindLong(1, img.getId());
+                stat.bindLong(2, img.getUserId());
+                stat.bindString(3, img.getFileName());
+                stat.bindString(4, img.getSmallimg());
+                stat.bindLong(5, img.getType());
+
+                stat.bindString(6, img.getHashMd5());
+                stat.bindLong(7, img.getFileTime());
+                stat.bindString(8, img.getFileAddr());
+                stat.bindLong(9, img.getFileSize());
+                stat.bindString(10, img.getFileAttribute());
+
+                stat.bindLong(11, img.getStatus());
+                stat.bindLong(12, img.getSource());
+                stat.bindLong(13, img.getCreatedAt());
+                stat.bindLong(14, img.getUpdatedAt());
+                stat.bindString(15, img.getUpImg());
+
+                stat.bindString(16, img.getImg_edit());
+                stat.bindString(17, img.getSmallimg_edit());
+                stat.bindLong(18, Constant.userId);
+                stat.bindLong(19, img.getId());
+
+                stat.executeInsert();
+            }
+            db.setTransactionSuccessful();
+            db.endTransaction();
+        }
+
     }
 
 
@@ -202,32 +267,56 @@ public class EAlbumDB {
      * @return
      */
     public List<ImageBean> getAllImageBean() {
+
         List<ImageBean> list = new ArrayList<>();
         Cursor cursor = db.query(EALBUM_TABLE_NAME, null, "userId=?", new String[]{String.valueOf(Constant.userId)}, null, null, null);
         if (cursor.moveToFirst()) {
+            int id = cursor.getColumnIndex("id");
+            int userId = cursor.getColumnIndex("userId");
+            int img = cursor.getColumnIndex("img");
+            int fileName = cursor.getColumnIndex("fileName");
+            int smallImg = cursor.getColumnIndex("smallimg");
+
+            int type = cursor.getColumnIndex("type");
+            int hashMd5 = cursor.getColumnIndex("hashMd5");
+            int fileTime = cursor.getColumnIndex("fileTime");
+            int fileAddr = cursor.getColumnIndex("fileAddr");
+            int fileSize = cursor.getColumnIndex("fileSize");
+
+            int fileAttribute = cursor.getColumnIndex("fileAttribute");
+            int status = cursor.getColumnIndex("status");
+            int source = cursor.getColumnIndex("source");
+            int createdAt = cursor.getColumnIndex("createdAt");
+            int updatedAt = cursor.getColumnIndex("updatedAt");
+
+            int upImg = cursor.getColumnIndex("upImg");
+            int img_edit = cursor.getColumnIndex("img_edit");
+            int smallimg_edit = cursor.getColumnIndex("smallimg_edit");
+
+
             do {
                 ImageBean bean = new ImageBean();
-                bean.setId(cursor.getInt(cursor.getColumnIndex("id")));
-                bean.setUserId(cursor.getInt(cursor.getColumnIndex("userId")));
-                bean.setImg(cursor.getString(cursor.getColumnIndex("img")));
-                bean.setFileName(cursor.getString(cursor.getColumnIndex("fileName")));
-                bean.setSmallimg(cursor.getString(cursor.getColumnIndex("smallimg")));
+                bean.setId(cursor.getInt(id));
+                bean.setUserId(cursor.getInt(userId));
+                bean.setImg(cursor.getString(img));
+                bean.setFileName(cursor.getString(fileName));
+                bean.setSmallimg(cursor.getString(smallImg));
 
-                bean.setType(cursor.getInt(cursor.getColumnIndex("type")));
-                bean.setHashMd5(cursor.getString(cursor.getColumnIndex("hashMd5")));
-                bean.setFileTime(cursor.getInt(cursor.getColumnIndex("fileTime")));
-                bean.setFileAddr(cursor.getString(cursor.getColumnIndex("fileAddr")));
-                bean.setFileSize(cursor.getInt(cursor.getColumnIndex("fileSize")));
+                bean.setType(cursor.getInt(type));
+                bean.setHashMd5(cursor.getString(hashMd5));
+                bean.setFileTime(cursor.getInt(fileTime));
+                bean.setFileAddr(cursor.getString(fileAddr));
+                bean.setFileSize(cursor.getInt(fileSize));
 
-                bean.setFileAttribute(cursor.getString(cursor.getColumnIndex("fileAttribute")));
-                bean.setStatus(cursor.getInt(cursor.getColumnIndex("status")));
-                bean.setSource(cursor.getInt(cursor.getColumnIndex("source")));
-                bean.setCreatedAt(cursor.getInt(cursor.getColumnIndex("createdAt")));
-                bean.setUpdatedAt(cursor.getInt(cursor.getColumnIndex("updatedAt")));
+                bean.setFileAttribute(cursor.getString(fileAttribute));
+                bean.setStatus(cursor.getInt(status));
+                bean.setSource(cursor.getInt(source));
+                bean.setCreatedAt(cursor.getInt(createdAt));
+                bean.setUpdatedAt(cursor.getInt(updatedAt));
 
-                bean.setUpImg(cursor.getString(cursor.getColumnIndex("upImg")));
-                bean.setImg_edit(cursor.getString(cursor.getColumnIndex("img_edit")));
-                bean.setSmallimg_edit(cursor.getString(cursor.getColumnIndex("smallimg_edit")));
+                bean.setUpImg(cursor.getString(upImg));
+                bean.setImg_edit(cursor.getString(img_edit));
+                bean.setSmallimg_edit(cursor.getString(smallimg_edit));
 
                 list.add(bean);
             } while (cursor.moveToNext());
@@ -236,5 +325,13 @@ public class EAlbumDB {
 
         return list;
     }
+
+    /**
+     * 删除所有图片信息
+     */
+    public void deleteAllImage() {
+        db.delete(EALBUM_TABLE_NAME, "userId= ?", new String[]{String.valueOf(Constant.userId)});
+    }
+
 
 }
