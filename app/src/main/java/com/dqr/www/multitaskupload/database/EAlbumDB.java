@@ -7,6 +7,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
 
 import com.dqr.www.multitaskupload.Constant;
+import com.dqr.www.multitaskupload.bean.ImageBean;
 import com.dqr.www.multitaskupload.bean.ProgressBean;
 import com.dqr.www.multitaskupload.bean.UploadTaskBean;
 
@@ -14,6 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static android.content.ContentValues.TAG;
+import static com.dqr.www.multitaskupload.database.EAlbumDBHelper.EALBUM_TABLE_NAME;
 import static com.dqr.www.multitaskupload.database.EAlbumDBHelper.UPLOAD_TASK_TABLE;
 
 /**
@@ -30,8 +32,8 @@ public class EAlbumDB {
     /**
      * 数据库版本
      */
-    public static final int MAX_SIZE=300;
-    public static final int VERSION = 1;
+    public static final int MAX_SIZE = 300;
+    public static final int VERSION = 2;
     private static EAlbumDB sEAlbumDB;
     private SQLiteDatabase db;
 
@@ -85,7 +87,7 @@ public class EAlbumDB {
      */
     public List<ProgressBean> getUploadTaskBean() {
         List<ProgressBean> list = new ArrayList<>();
-        Cursor cursor = db.query(UPLOAD_TASK_TABLE, null,"userId=?",new String[]{Constant.userId+""}, null, null, " id asc limit 0,"+MAX_SIZE);
+        Cursor cursor = db.query(UPLOAD_TASK_TABLE, null, "userId=?", new String[]{Constant.userId + ""}, null, null, " id asc limit 0," + MAX_SIZE);
         if (cursor.moveToFirst()) {
             do {
                 UploadTaskBean up = new UploadTaskBean();
@@ -110,13 +112,14 @@ public class EAlbumDB {
 
     /**
      * 根据ID 修改任务起始位置
+     *
      * @param id
      * @param startPos
      */
-    public void updateTaskStartPosById(int id,long startPos){
+    public void updateTaskStartPosById(int id, long startPos) {
         ContentValues values = new ContentValues();
-        values.put("startPos",startPos);
-        db.update(UPLOAD_TASK_TABLE,values," id = ? ",new String[]{id + ""});
+        values.put("startPos", startPos);
+        db.update(UPLOAD_TASK_TABLE, values, " id = ? ", new String[]{id + ""});
     }
 
     /**
@@ -142,7 +145,7 @@ public class EAlbumDB {
      * @return
      */
     public boolean isHasSameTaskByMD5(String md5) {
-        Cursor cursor = db.query(UPLOAD_TASK_TABLE, null, "md5=? and userId=?", new String[]{md5,Constant.userId+""}, null, null, " id asc");
+        Cursor cursor = db.query(UPLOAD_TASK_TABLE, null, "md5=? and userId=?", new String[]{md5, Constant.userId + ""}, null, null, " id asc");
 
         if (cursor.moveToFirst()) {
             Log.d(TAG, "saveUploadTask: 已经存在相同任务" + cursor.getString(cursor.getColumnIndex("filePath")));
@@ -151,6 +154,87 @@ public class EAlbumDB {
         }
         cursor.close();
         return false;
-
     }
+
+
+    /**
+     * 存储上传成功图片信息
+     *
+     * @param img
+     */
+    public synchronized void saveUploadImage(ImageBean img) {
+        db.execSQL("insert into " + EALBUM_TABLE_NAME +
+                        " ( id, userId, img, fileName, smallimg" +
+                        ", type, hashMd5, fileTime, fileAddr, fileSize" +
+                        ", fileAttribute, status, source, createdAt, updatedAt" +
+                        ", upImg, img_edit, smallimg_edit)" +
+                        " select ?, ?, ?, ?, ?" +
+                        ", ?, ?, ?, ?, ?" +
+                        ", ?, ?, ?, ?, ?" +
+                        ", ?, ?, ? " +
+                        "where not exists(select 1 from  " + EALBUM_TABLE_NAME + " where userId=? and id=?)" +
+                        ")",
+
+                new String[]{String.valueOf(img.getId())
+                        , String.valueOf(img.getUserId())
+                        , img.getImg(), img.getFileName()
+                        , img.getSmallimg()
+                        , String.valueOf(img.getType())
+                        , img.getHashMd5()
+                        , String.valueOf(img.getFileTime())
+                        , img.getFileAddr()
+                        , String.valueOf(img.getFileSize())
+                        , img.getFileAttribute()
+                        , String.valueOf(img.getStatus())
+                        , String.valueOf(img.getSource())
+                        , String.valueOf(img.getCreatedAt())
+                        , String.valueOf(img.getUpdatedAt())
+                        , img.getUpImg(), img.getImg_edit()
+                        , img.getSmallimg_edit()
+                        , String.valueOf(Constant.userId)
+                        , String.valueOf(img.getId())});
+    }
+
+
+    /**
+     * 获取所有图片信息
+     *
+     * @return
+     */
+    public List<ImageBean> getAllImageBean() {
+        List<ImageBean> list = new ArrayList<>();
+        Cursor cursor = db.query(EALBUM_TABLE_NAME, null, "userId=?", new String[]{String.valueOf(Constant.userId)}, null, null, null);
+        if (cursor.moveToFirst()) {
+            do {
+                ImageBean bean = new ImageBean();
+                bean.setId(cursor.getInt(cursor.getColumnIndex("id")));
+                bean.setUserId(cursor.getInt(cursor.getColumnIndex("userId")));
+                bean.setImg(cursor.getString(cursor.getColumnIndex("img")));
+                bean.setFileName(cursor.getString(cursor.getColumnIndex("fileName")));
+                bean.setSmallimg(cursor.getString(cursor.getColumnIndex("smallimg")));
+
+                bean.setType(cursor.getInt(cursor.getColumnIndex("type")));
+                bean.setHashMd5(cursor.getString(cursor.getColumnIndex("hashMd5")));
+                bean.setFileTime(cursor.getInt(cursor.getColumnIndex("fileTime")));
+                bean.setFileAddr(cursor.getString(cursor.getColumnIndex("fileAddr")));
+                bean.setFileSize(cursor.getInt(cursor.getColumnIndex("fileSize")));
+
+                bean.setFileAttribute(cursor.getString(cursor.getColumnIndex("fileAttribute")));
+                bean.setStatus(cursor.getInt(cursor.getColumnIndex("status")));
+                bean.setSource(cursor.getInt(cursor.getColumnIndex("source")));
+                bean.setCreatedAt(cursor.getInt(cursor.getColumnIndex("createdAt")));
+                bean.setUpdatedAt(cursor.getInt(cursor.getColumnIndex("updatedAt")));
+
+                bean.setUpImg(cursor.getString(cursor.getColumnIndex("upImg")));
+                bean.setImg_edit(cursor.getString(cursor.getColumnIndex("img_edit")));
+                bean.setSmallimg_edit(cursor.getString(cursor.getColumnIndex("smallimg_edit")));
+
+                list.add(bean);
+            } while (cursor.moveToNext());
+        }
+        cursor.close();
+
+        return list;
+    }
+
 }

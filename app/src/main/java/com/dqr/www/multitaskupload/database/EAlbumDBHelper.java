@@ -15,6 +15,7 @@ public class EAlbumDBHelper extends SQLiteOpenHelper {
     private static final String TAG = "EAlbumDBHelper";
 
     public static final String UPLOAD_TASK_TABLE = "upload_task";
+    public static final String EALBUM_TABLE_NAME = "ealbum";
     private Context mContext;
     /**
      * 待上传数据记录表
@@ -34,6 +35,30 @@ public class EAlbumDBHelper extends SQLiteOpenHelper {
             "albumName text," +//相册名称
             "userId integer" +//userId
             ")";
+    /**
+     * 上传成功
+     */
+    public static final String EALBUM_TABLE = "create table " + EALBUM_TABLE_NAME + " (" +
+            "sysId integer primary key autoincrement," +
+            "id integer," +
+            "userId integer," +
+            "img text," +
+            "fileName text" +
+            "smallimg text," +
+            "type integer" +
+            "hashMd5" +
+            "fileTime integer" +
+            "fileAddr text," +
+            "fileSize text," +
+            "fileAttribute text," +
+            "status integer," +
+            "source integer," +
+            "createdAt text," +
+            "updatedAt text," +
+            "upImg text," +
+            "img_edit text," +
+            "smallimg_edit text" +
+            ")";
 
     public EAlbumDBHelper(Context context, String name, SQLiteDatabase.CursorFactory factory, int version) {
         super(context, name, factory, version);
@@ -43,11 +68,16 @@ public class EAlbumDBHelper extends SQLiteOpenHelper {
     @Override
     public void onCreate(SQLiteDatabase db) {
         db.execSQL(UPLOAD_TASK);
+        db.execSQL(EALBUM_TABLE);
         Log.d(TAG, "onCreate: upload_task 创建成功");
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-
+        switch (oldVersion) {
+            case 1:
+                db.execSQL(EALBUM_TABLE);
+            default:
+        }
     }
 }
