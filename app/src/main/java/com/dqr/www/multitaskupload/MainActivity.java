@@ -142,7 +142,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 System.out.println("查询结束:" + System.currentTimeMillis());
                 for (int i = 0; i < beans.size(); i++) {
                     ImageBean bean = beans.get(i);
-                    Log.d(TAG, "onClick: " + i + "  Image:" + bean.getId());
+                    Log.d(TAG, "onClick: " + i + "  Image:" +bean.toString());
                 }
                 break;
             case R.id.btn_add_multi:
@@ -221,7 +221,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     public List<ImageBean> getImageList() {
         List<ImageBean> beanList = new ArrayList<>();
-        for (int i = 0; i < 10000; i++) {
+        for (int i = 0; i < 1; i++) {
             ImageBean bean = new ImageBean();
             bean.setId(i);
             bean.setUserId(Constant.userId);

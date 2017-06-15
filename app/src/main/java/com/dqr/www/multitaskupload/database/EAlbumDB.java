@@ -174,25 +174,26 @@ public class EAlbumDB {
      * @param img
      */
     public synchronized void saveUploadImage(ImageBean img) {
-        db.execSQL(QUERY_UPLOAD_IMAGE, new String[]{String.valueOf(img.getId())
+        db.execSQL(QUERY_UPLOAD_IMAGE, new String[]{
+                 String.valueOf(img.getId())
                 , String.valueOf(img.getUserId())
                 , img.getImg()
                 , img.getFileName()
                 , img.getSmallimg()
-                , String.valueOf(img.getType())
 
+                , String.valueOf(img.getType())
                 , img.getHashMd5()
                 , String.valueOf(img.getFileTime())
                 , img.getFileAddr()
                 , String.valueOf(img.getFileSize())
-                , img.getFileAttribute()
 
+                , img.getFileAttribute()
                 , String.valueOf(img.getStatus())
                 , String.valueOf(img.getSource())
                 , String.valueOf(img.getCreatedAt())
                 , String.valueOf(img.getUpdatedAt())
-                , img.getUpImg()
 
+                , img.getUpImg()
                 , img.getImg_edit()
                 , img.getSmallimg_edit()
                 , String.valueOf(Constant.userId)
@@ -231,26 +232,29 @@ public class EAlbumDB {
 
                 stat.bindLong(1, img.getId());
                 stat.bindLong(2, img.getUserId());
-                stat.bindString(3, img.getFileName());
-                stat.bindString(4, img.getSmallimg());
-                stat.bindLong(5, img.getType());
+                stat.bindString(3,img.getImg());
+                stat.bindString(4, img.getFileName());
+                stat.bindString(5, img.getSmallimg());
 
-                stat.bindString(6, img.getHashMd5());
-                stat.bindLong(7, img.getFileTime());
-                stat.bindString(8, img.getFileAddr());
-                stat.bindLong(9, img.getFileSize());
-                stat.bindString(10, img.getFileAttribute());
+                stat.bindLong(6,img.getType());
+                stat.bindString(7, img.getHashMd5());
+                stat.bindLong(8, img.getFileTime());
+                stat.bindString(9, img.getFileAddr());
+                stat.bindLong(10, img.getFileSize());
 
-                stat.bindLong(11, img.getStatus());
-                stat.bindLong(12, img.getSource());
-                stat.bindLong(13, img.getCreatedAt());
-                stat.bindLong(14, img.getUpdatedAt());
-                stat.bindString(15, img.getUpImg());
+                stat.bindString(11, img.getFileAttribute());
+                stat.bindLong(12, img.getStatus());
+                stat.bindLong(13, img.getSource());
+                stat.bindLong(14, img.getCreatedAt());
+                stat.bindLong(15, img.getUpdatedAt());
 
-                stat.bindString(16, img.getImg_edit());
-                stat.bindString(17, img.getSmallimg_edit());
-                stat.bindLong(18, Constant.userId);
-                stat.bindLong(19, img.getId());
+                stat.bindString(16,img.getUpImg());
+                stat.bindString(17, img.getImg_edit());
+                stat.bindString(18, img.getSmallimg_edit());
+
+                //条件
+                stat.bindLong(19, Constant.userId);
+                stat.bindLong(20, img.getId());
 
                 stat.executeInsert();
             }
@@ -317,6 +321,8 @@ public class EAlbumDB {
                 bean.setUpImg(cursor.getString(upImg));
                 bean.setImg_edit(cursor.getString(img_edit));
                 bean.setSmallimg_edit(cursor.getString(smallimg_edit));
+
+
 
                 list.add(bean);
             } while (cursor.moveToNext());

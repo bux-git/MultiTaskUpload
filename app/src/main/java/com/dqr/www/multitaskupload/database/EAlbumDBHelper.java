@@ -16,7 +16,7 @@ public class EAlbumDBHelper extends SQLiteOpenHelper {
 
     public static final String UPLOAD_TASK_TABLE = "upload_task";
     public static final String EALBUM_TABLE_NAME = "ealbum";
-    private Context mContext;
+
     /**
      * 待上传数据记录表
      */
@@ -44,17 +44,20 @@ public class EAlbumDBHelper extends SQLiteOpenHelper {
             "userId integer," +
             "img text," +
             "fileName text," +
+
             "smallimg text," +
             "type integer," +
             "hashMd5," +
             "fileTime integer," +
             "fileAddr text," +
+
             "fileSize text," +
             "fileAttribute text," +
             "status integer," +
             "source integer," +
-            "createdAt text," +
-            "updatedAt text," +
+            "createdAt integer," +
+
+            "updatedAt integer," +
             "upImg text," +
             "img_edit text," +
             "smallimg_edit text" +
@@ -62,7 +65,6 @@ public class EAlbumDBHelper extends SQLiteOpenHelper {
 
     public EAlbumDBHelper(Context context, String name, SQLiteDatabase.CursorFactory factory, int version) {
         super(context, name, factory, version);
-        this.mContext = context;
     }
 
     @Override
