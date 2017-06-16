@@ -136,13 +136,37 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 }).start();
 
                 break;
+            case R.id.btn_add_single1:
+
+                ImageBean bean = new ImageBean();
+                bean.setId(5);
+                bean.setUserId(Constant.userId);
+                bean.setImg("http://test.dqr2015.cn:8888/uploadFiles/201706/7852/97deaae975354cfb9c2cfdb924b73a8f.jpg");
+                bean.setFileName("IMG_20170607_173632_BURST30.jpg");
+                bean.setSmallimg("http://test.dqr2015.cn:8888/uploadFiles/201706/7852/small_97deaae975354cfb9c2cfdb924b73a8f.jpg");
+                bean.setType(1);
+                bean.setHashMd5("998ba3c4db7f35486fe7459b240cfcae");
+                bean.setFileTime(1496784996000L);
+                bean.setFileAddr("湖南 长沙");
+                bean.setFileSize(2518483);
+                bean.setFileAttribute("{\"lng\":28,\"lat\":113}");
+                bean.setStatus(1);
+                bean.setSource(1);
+                bean.setCreatedAt(1496920685000L);
+                bean.setUpdatedAt(1496920685000L);
+                bean.setUpImg("");
+                bean.setImg_edit("/uploadFiles/201706/7852/97deaae975354cfb9c2cfdb924b73a8f.jpg");
+                bean.setSmallimg_edit("/uploadFiles/201706/7852/small_97deaae975354cfb9c2cfdb924b73a8f.jpg");
+                mEAlbumDB.saveUploadImage(bean);
+                break;
+
             case R.id.btn_add_select:
                 System.out.println("开始查询数据:" + System.currentTimeMillis());
                 List<ImageBean> beans = mEAlbumDB.getAllImageBean();
                 System.out.println("查询结束:" + System.currentTimeMillis());
                 for (int i = 0; i < beans.size(); i++) {
-                    ImageBean bean = beans.get(i);
-                    Log.d(TAG, "onClick: " + i + "  Image:" +bean.toString());
+                    ImageBean bean1 = beans.get(i);
+                    Log.d(TAG, "onClick: " + i + "  Image:" +bean1.toString());
                 }
                 break;
             case R.id.btn_add_multi:

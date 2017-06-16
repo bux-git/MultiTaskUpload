@@ -308,15 +308,15 @@ public class EAlbumDB {
 
                 bean.setType(cursor.getInt(type));
                 bean.setHashMd5(cursor.getString(hashMd5));
-                bean.setFileTime(cursor.getInt(fileTime));
+                bean.setFileTime(cursor.getLong(fileTime));
                 bean.setFileAddr(cursor.getString(fileAddr));
                 bean.setFileSize(cursor.getInt(fileSize));
 
                 bean.setFileAttribute(cursor.getString(fileAttribute));
                 bean.setStatus(cursor.getInt(status));
                 bean.setSource(cursor.getInt(source));
-                bean.setCreatedAt(cursor.getInt(createdAt));
-                bean.setUpdatedAt(cursor.getInt(updatedAt));
+                bean.setCreatedAt(cursor.getLong(createdAt));
+                bean.setUpdatedAt(cursor.getLong(updatedAt));
 
                 bean.setUpImg(cursor.getString(upImg));
                 bean.setImg_edit(cursor.getString(img_edit));
